@@ -56,33 +56,36 @@
                 <input type="text" name="publicTitle" placeholder="Scan to See Our Latest Posts"/>
               </div>
               <div>
-                <label>Public Subtitle</label>
-                <input type="text" name="publicSubtitle" placeholder="Show your comment/share for a discount!"/>
+                <label>Public Subtitle / CTA</label>
+                <input type="text" name="publicSubtitle" placeholder="Comment or share to get a discount!"/>
               </div>
             </div>
             <div class="row">
-              <div>
-                <label>Card CTA Label (under QR)</label>
-                <input type="text" name="ctaLabel" placeholder="Scan & open the latest post"/>
-              </div>
               <div>
                 <label>Footer Text</label>
-                <input type="text" name="publicFooter" placeholder="Powered by YourAgency"/>
+                <input type="text" name="publicFooter" placeholder="Thanks for supporting us!"/>
+              </div>
+              <div>
+                <label>QR Layout</label>
+                <select name="qrLayout">
+                  <option value="vertical" selected>Vertical (stacked)</option>
+                  <option value="horizontal">Horizontal (side‑by‑side)</option>
+                </select>
               </div>
             </div>
             <div class="row">
               <div>
-                <label>Instagram latest post URL</label>
+                <label>Instagram target URL</label>
                 <input type="url" name="instagramUrl" placeholder="https://www.instagram.com/p/..." />
               </div>
               <div>
-                <label>TikTok latest post URL</label>
+                <label>TikTok target URL</label>
                 <input type="url" name="tiktokUrl" placeholder="https://www.tiktok.com/..." />
               </div>
             </div>
             <div class="row">
               <div>
-                <label>YouTube latest video URL</label>
+                <label>YouTube target URL</label>
                 <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..."/>
               </div>
               <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
@@ -97,17 +100,16 @@
           <ol class="small">
             <li>Set <code>BASE_URL</code> in <code>.env</code> to your LAN IP or tunnel URL.</li>
             <li>Create a business with links & theme.</li>
-            <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code>.</li>
+            <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code> (dynamic image at <code>/qr/&lt;slug&gt;/instagram.png</code>).</li>
             <li>Print the public page: <code>/p/&lt;slug&gt;</code>.</li>
             <li>Update weekly post links anytime; QRs stay the same.</li>
           </ol>
-          <div class="banner small">Pro tip: Switch to S3 for persistent QR storage in production.</div>
+          <div class="banner small">Pro tip: Use a stable domain for printed codes.</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:16px">
         <h2>Businesses</h2>
-        <p class="small">If you don’t see entries here after creating one, you might be starting the server from a different folder (new empty SQLite DB). Ensure you’re in the same project directory.</p>
         <table>
           <thead><tr><th>Name</th><th>Slug</th><th>Public Page</th><th>Admin</th></tr></thead>
           <tbody>

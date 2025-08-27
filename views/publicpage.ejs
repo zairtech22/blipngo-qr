@@ -18,24 +18,38 @@
         background: linear-gradient(135deg, var(--bg1), var(--bg2));
         color: var(--text);
       }
-      .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; text-align: center; }
-      .card {
+      .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+      .brand { margin-bottom: 20px; }
+      .brand img { max-height: 80px; margin-bottom: 14px; }
+      h1 { font-size: 2rem; margin: 0 0 .25rem 0; color: var(--accent); }
+      .cta-top { font-size: 1rem; color: var(--muted); margin-top: 6px; }
+
+      .qr-wrap { margin-top: 20px; }
+      .qr-grid {
+        display: grid;
+        gap: 16px;
+      }
+      .qr-item {
         background: rgba(255,255,255,0.85);
         backdrop-filter: blur(8px);
         border-radius: 20px;
-        padding: 20px;
-        margin: 20px 0;
+        padding: 18px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       }
-      h1 { font-size: 2rem; margin-bottom: .5rem; color: var(--accent); }
-      h2 { margin: 1rem 0 .5rem; }
-      .platform { margin-top: 20px; }
+      .qr-item h2 { margin: 0 0 .5rem 0; }
       .qr img { width: 200px; height: auto; border-radius: 12px; }
-      .cta { font-size: .9rem; color: var(--muted); margin-top: 8px; }
+
       footer { margin-top: 40px; font-size: .8rem; color: var(--muted); }
+
+      /* Layout presets */
+      .vertical { grid-template-columns: 1fr; }
+      .horizontal { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      @media (max-width: 900px) { .horizontal { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 640px) { .horizontal { grid-template-columns: 1fr; } }
+
       @media print {
         body { background: #fff !important; color: #000; }
-        .card { background: #fff !important; box-shadow: none; border: 1px solid #ddd; }
+        .qr-item { background:#fff !important; box-shadow:none; border:1px solid #ddd; }
       }
     </style>
   </head>
@@ -48,36 +62,36 @@
     "
   >
     <div class="container">
-      <% if (biz.showLogo && biz.logoUrl) { %>
-        <img src="<%= biz.logoUrl %>" alt="Logo" style="max-height:80px; margin-bottom:20px"/>
-      <% } %>
+      <div class="brand">
+        <% if (biz.showLogo && biz.logoUrl) { %>
+          <img src="<%= biz.logoUrl %>" alt="Logo"/>
+        <% } %>
+        <h1><%= biz.publicTitle || ('Welcome to ' + biz.name) %></h1>
+        <div class="cta-top"><%= biz.publicSubtitle || 'Comment or share to get a discount!' %></div>
+      </div>
 
-      <h1><%= biz.publicTitle || ('Welcome to ' + biz.name) %></h1>
-      <p><%= biz.publicSubtitle || 'Scan to check out our latest posts!' %></p>
-
-      <% if (biz.qrInstagram) { %>
-        <div class="card platform">
-          <h2>Instagram</h2>
-          <div class="qr"><img src="<%= biz.qrInstagram %>?v=<%= Date.now() %>"></div>
-          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest post' %></div>
+      <div class="qr-wrap">
+        <div class="qr-grid <%= (biz.qrLayout || 'vertical') %>">
+          <% if (biz.instagramUrl) { %>
+            <div class="qr-item">
+              <h2>Instagram</h2>
+              <div class="qr"><img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"></div>
+            </div>
+          <% } %>
+          <% if (biz.tiktokUrl) { %>
+            <div class="qr-item">
+              <h2>TikTok</h2>
+              <div class="qr"><img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"></div>
+            </div>
+          <% } %>
+          <% if (biz.youtubeUrl) { %>
+            <div class="qr-item">
+              <h2>YouTube</h2>
+              <div class="qr"><img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"></div>
+            </div>
+          <% } %>
         </div>
-      <% } %>
-
-      <% if (biz.qrTiktok) { %>
-        <div class="card platform">
-          <h2>TikTok</h2>
-          <div class="qr"><img src="<%= biz.qrTiktok %>?v=<%= Date.now() %>"></div>
-          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest post' %></div>
-        </div>
-      <% } %>
-
-      <% if (biz.qrYoutube) { %>
-        <div class="card platform">
-          <h2>YouTube</h2>
-          <div class="qr"><img src="<%= biz.qrYoutube %>?v=<%= Date.now() %>"></div>
-          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest video' %></div>
-        </div>
-      <% } %>
+      </div>
 
       <footer>
         <%= biz.publicFooter || ('Thanks for supporting ' + biz.name) %>

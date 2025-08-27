@@ -6,18 +6,19 @@
     <title><%= biz.name %> • Admin</title>
     <link rel="stylesheet" href="/public/css/style.css?v=<%= Date.now() %>"/>
     <style>
-      /* Admin page refinements */
       .admin-subhead { color:#6b7280; font-size:12px; margin-top:-6px; }
       .platform-card { display:flex; flex-direction:column; gap:8px; }
       .platform-header { display:flex; align-items:center; justify-content:space-between; }
       .platform-title { font-weight:600; }
       .qr { background:#fff; padding:10px; border-radius:12px; border:1px dashed #e5e7eb; display:flex; justify-content:center; }
-      .qr img { max-width:150px; height:auto; border-radius:12px; } /* smaller! */
+      .qr img { max-width:150px; height:auto; border-radius:12px; }
       .platform-actions { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
       .hint { color:#6b7280; font-size:12px; }
       .kv { font-size:12px; color:#6b7280; }
       @media (max-width: 980px) { .grid-3 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
       @media (max-width: 680px) { .grid-3 { grid-template-columns: 1fr; } }
+      .disabled-note { color:#b45309; font-size:12px; margin-top:-4px; }
+      .layout-row .qr { justify-content:flex-start; }
     </style>
   </head>
   <body>
@@ -25,7 +26,7 @@
       <div class="header">
         <div>
           <h1><%= biz.name %> — Admin</h1>
-          <div class="admin-subhead">Manage links, theme, and QR generation.</div>
+          <div class="admin-subhead">Set brand theme, weekly links, and QR layout. QRs are dynamic & permanent.</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <form method="post" action="/business/<%= biz.slug %>/regen">
@@ -54,7 +55,7 @@
       </div>
 
       <div class="card" style="margin-top:16px;">
-        <h2>Theme & Public Text</h2>
+        <h2>Theme, CTA & Layout</h2>
         <form method="post" action="/business/<%= biz.slug %>/theme">
           <div class="row">
             <div>
@@ -82,18 +83,21 @@
               <input type="text" name="publicTitle" value="<%= biz.publicTitle || 'Scan to See Our Latest Posts' %>"/>
             </div>
             <div>
-              <label>Public Subtitle</label>
-              <input type="text" name="publicSubtitle" value="<%= biz.publicSubtitle || 'Show your comment/share for a discount!' %>"/>
+              <label>Public Subtitle / CTA (shown under logo)</label>
+              <input type="text" name="publicSubtitle" value="<%= biz.publicSubtitle || 'Comment or share to get a discount!' %>"/>
             </div>
           </div>
           <div class="row">
             <div>
-              <label>Card CTA Label</label>
-              <input type="text" name="ctaLabel" value="<%= biz.ctaLabel || 'Scan & open the latest post' %>"/>
+              <label>Footer Text</label>
+              <input type="text" name="publicFooter" value="<%= biz.publicFooter || 'Thanks for supporting us!' %>"/>
             </div>
             <div>
-              <label>Footer Text</label>
-              <input type="text" name="publicFooter" value="<%= biz.publicFooter || 'Powered by YourAgency' %>"/>
+              <label>QR Layout</label>
+              <select name="qrLayout">
+                <option value="vertical" <%= (biz.qrLayout || 'vertical') === 'vertical' ? 'selected' : '' %>>Vertical (stacked)</option>
+                <option value="horizontal" <%= (biz.qrLayout || 'vertical') === 'horizontal' ? 'selected' : '' %>>Horizontal (side‑by‑side)</option>
+              </select>
             </div>
           </div>
           <div style="text-align:right; margin-top:8px;"><button type="submit">Save Theme</button></div>
@@ -108,32 +112,23 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/instagram</code></div>
           </div>
           <div class="qr">
-            <% if (biz.qrInstagram) { %>
-              <img src="<%= biz.qrInstagram %>?v=<%= Date.now() %>"/>
-            <% } else { %>
-              <div class="small">No QR yet</div>
-            <% } %>
+            <img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"/>
           </div>
+          <% if (!biz.instagramUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="instagram"/>
-              <label class="small">Current target URL</label>
+              <label class="small">Target URL</label>
               <input type="url" name="newUrl" value="<%= biz.instagramUrl || '' %>" placeholder="https://www.instagram.com/p/...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update</button></div>
+              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
             </form>
             <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="instagram"/>
-              <div class="row">
-                <div>
-                  <label class="small">Enable Instagram</label>
-                  <input type="checkbox" name="enabled" <%= biz.instagramUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-                </div>
-                <div>
-                  <label class="small">Instagram URL (when enabling)</label>
-                  <input type="url" name="newUrl" value="<%= biz.instagramUrl || '' %>" placeholder="https://..."/>
-                </div>
-              </div>
-              <div class="hint">Disable removes URL & QR. Enable regenerates QR with current BASE_URL.</div>
+              <label class="small">Enabled</label>
+              <input type="checkbox" name="enabled" <%= biz.instagramUrl ? 'checked' : '' %> onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -145,32 +140,23 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/tiktok</code></div>
           </div>
           <div class="qr">
-            <% if (biz.qrTiktok) { %>
-              <img src="<%= biz.qrTiktok %>?v=<%= Date.now() %>"/>
-            <% } else { %>
-              <div class="small">No QR yet</div>
-            <% } %>
+            <img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"/>
           </div>
+          <% if (!biz.tiktokUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="tiktok"/>
-              <label class="small">Current target URL</label>
+              <label class="small">Target URL</label>
               <input type="url" name="newUrl" value="<%= biz.tiktokUrl || '' %>" placeholder="https://www.tiktok.com/...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update</button></div>
+              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
             </form>
             <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="tiktok"/>
-              <div class="row">
-                <div>
-                  <label class="small">Enable TikTok</label>
-                  <input type="checkbox" name="enabled" <%= biz.tiktokUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-                </div>
-                <div>
-                  <label class="small">TikTok URL (when enabling)</label>
-                  <input type="url" name="newUrl" value="<%= biz.tiktokUrl || '' %>" placeholder="https://..."/>
-                </div>
-              </div>
-              <div class="hint">Disable removes URL & QR. Enable regenerates QR with current BASE_URL.</div>
+              <label class="small">Enabled</label>
+              <input type="checkbox" name="enabled" <%= biz.tiktokUrl ? 'checked' : '' %> onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -182,32 +168,23 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/youtube</code></div>
           </div>
           <div class="qr">
-            <% if (biz.qrYoutube) { %>
-              <img src="<%= biz.qrYoutube %>?v=<%= Date.now() %>"/>
-            <% } else { %>
-              <div class="small">No QR yet</div>
-            <% } %>
+            <img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"/>
           </div>
+          <% if (!biz.youtubeUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="youtube"/>
-              <label class="small">Current target URL</label>
+              <label class="small">Target URL</label>
               <input type="url" name="newUrl" value="<%= biz.youtubeUrl || '' %>" placeholder="https://www.youtube.com/watch?v=...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update</button></div>
+              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
             </form>
             <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="youtube"/>
-              <div class="row">
-                <div>
-                  <label class="small">Enable YouTube</label>
-                  <input type="checkbox" name="enabled" <%= biz.youtubeUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-                </div>
-                <div>
-                  <label class="small">YouTube URL (when enabling)</label>
-                  <input type="url" name="newUrl" value="<%= biz.youtubeUrl || '' %>" placeholder="https://..."/>
-                </div>
-              </div>
-              <div class="hint">Disable removes URL & QR. Enable regenerates QR with current BASE_URL.</div>
+              <label class="small">Enabled</label>
+              <input type="checkbox" name="enabled" <%= biz.youtubeUrl ? 'checked' : '' %> onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -218,6 +195,7 @@
         <ul class="small">
           <li>Scan redirect: <code>/r/:slug/:platform</code></li>
           <li>Printable page: <code>/p/:slug</code></li>
+          <li>QR image (dynamic): <code>/qr/:slug/:platform.png</code></li>
           <li>Analytics (JSON): <code>/business/:slug/analytics.json</code></li>
         </ul>
       </div>
