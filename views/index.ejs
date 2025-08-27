@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Business QR App</title>
+    <link rel="stylesheet" href="/public/css/style.css?v=<%= Date.now() %>"/>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Business QR Manager</h1>
+        <form method="post" action="/admin/regen-all">
+          <button class="secondary" type="submit">Regenerate All QRs</button>
+        </form>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 2fr 1.2fr;">
+        <div class="card">
+          <h2>Create a business</h2>
+          <p class="small">Logos are by URL for the MVP. You can add uploads later.</p>
+          <form method="post" action="/business">
+            <div class="row">
+              <div>
+                <label>Business name</label>
+                <input type="text" name="name" required />
+              </div>
+              <div>
+                <label>Custom slug (optional)</label>
+                <input type="text" name="slug" placeholder="auto from name" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Logo URL (optional)</label>
+                <input type="url" name="logoUrl" placeholder="https://..." />
+              </div>
+              <div>
+                <label>Accent Color</label>
+                <input type="color" name="themeHex" value="#111827"/>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Background Gradient Start</label>
+                <input type="color" name="themeBgHex" value="#0ea5e9"/>
+              </div>
+              <div>
+                <label>Background Gradient End</label>
+                <input type="color" name="themeBgHex2" value="#6366f1"/>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Public Title</label>
+                <input type="text" name="publicTitle" placeholder="Scan to See Our Latest Posts"/>
+              </div>
+              <div>
+                <label>Public Subtitle</label>
+                <input type="text" name="publicSubtitle" placeholder="Show your comment/share for a discount!"/>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Card CTA Label (under QR)</label>
+                <input type="text" name="ctaLabel" placeholder="Scan & open the latest post"/>
+              </div>
+              <div>
+                <label>Footer Text</label>
+                <input type="text" name="publicFooter" placeholder="Powered by YourAgency"/>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Instagram latest post URL</label>
+                <input type="url" name="instagramUrl" placeholder="https://www.instagram.com/p/..." />
+              </div>
+              <div>
+                <label>TikTok latest post URL</label>
+                <input type="url" name="tiktokUrl" placeholder="https://www.tiktok.com/..." />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>YouTube latest video URL</label>
+                <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..."/>
+              </div>
+              <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
+                <button type="submit">Create</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>How it works</h2>
+          <ol class="small">
+            <li>Set <code>BASE_URL</code> in <code>.env</code> to your LAN IP or tunnel URL.</li>
+            <li>Create a business with links & theme.</li>
+            <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code>.</li>
+            <li>Print the public page: <code>/p/&lt;slug&gt;</code>.</li>
+            <li>Update weekly post links anytime; QRs stay the same.</li>
+          </ol>
+          <div class="banner small">Pro tip: Switch to S3 for persistent QR storage in production.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Businesses</h2>
+        <p class="small">If you don’t see entries here after creating one, you might be starting the server from a different folder (new empty SQLite DB). Ensure you’re in the same project directory.</p>
+        <table>
+          <thead><tr><th>Name</th><th>Slug</th><th>Public Page</th><th>Admin</th></tr></thead>
+          <tbody>
+            <% if (businesses.length === 0) { %>
+              <tr><td colspan="4" class="small">No businesses yet. Create one above.</td></tr>
+            <% } %>
+            <% businesses.forEach(b => { %>
+              <tr>
+                <td><%= b.name %></td>
+                <td><code><%= b.slug %></code></td>
+                <td><a href="/p/<%= b.slug %>" target="_blank">View</a></td>
+                <td><a href="/business/<%= b.slug %>">Manage</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">© <script>document.write(new Date().getFullYear())</script> Business QR App</div>
+    </div>
+  </body>
+</html>

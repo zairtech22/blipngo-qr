@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title><%= biz.publicTitle || biz.name %></title>
+    <style>
+      :root {
+        --bg1: #0ea5e9;
+        --bg2: #6366f1;
+        --accent: #111827;
+        --text: #111827;
+        --muted: #374151;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: linear-gradient(135deg, var(--bg1), var(--bg2));
+        color: var(--text);
+      }
+      .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+      .card {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(8px);
+        border-radius: 20px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      h1 { font-size: 2rem; margin-bottom: .5rem; color: var(--accent); }
+      h2 { margin: 1rem 0 .5rem; }
+      .platform { margin-top: 20px; }
+      .qr img { width: 200px; height: auto; border-radius: 12px; }
+      .cta { font-size: .9rem; color: var(--muted); margin-top: 8px; }
+      footer { margin-top: 40px; font-size: .8rem; color: var(--muted); }
+      @media print {
+        body { background: #fff !important; color: #000; }
+        .card { background: #fff !important; box-shadow: none; border: 1px solid #ddd; }
+      }
+    </style>
+  </head>
+  <body
+    style="
+      --bg1:<%= biz.themeBgHex || '#0ea5e9' %>;
+      --bg2:<%= biz.themeBgHex2 || '#6366f1' %>;
+      --accent:<%= biz.themeHex || '#111827' %>;
+      --text:#111827;
+    "
+  >
+    <div class="container">
+      <% if (biz.showLogo && biz.logoUrl) { %>
+        <img src="<%= biz.logoUrl %>" alt="Logo" style="max-height:80px; margin-bottom:20px"/>
+      <% } %>
+
+      <h1><%= biz.publicTitle || ('Welcome to ' + biz.name) %></h1>
+      <p><%= biz.publicSubtitle || 'Scan to check out our latest posts!' %></p>
+
+      <% if (biz.qrInstagram) { %>
+        <div class="card platform">
+          <h2>Instagram</h2>
+          <div class="qr"><img src="<%= biz.qrInstagram %>?v=<%= Date.now() %>"></div>
+          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest post' %></div>
+        </div>
+      <% } %>
+
+      <% if (biz.qrTiktok) { %>
+        <div class="card platform">
+          <h2>TikTok</h2>
+          <div class="qr"><img src="<%= biz.qrTiktok %>?v=<%= Date.now() %>"></div>
+          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest post' %></div>
+        </div>
+      <% } %>
+
+      <% if (biz.qrYoutube) { %>
+        <div class="card platform">
+          <h2>YouTube</h2>
+          <div class="qr"><img src="<%= biz.qrYoutube %>?v=<%= Date.now() %>"></div>
+          <div class="cta"><%= biz.ctaLabel || 'Scan & open the latest video' %></div>
+        </div>
+      <% } %>
+
+      <footer>
+        <%= biz.publicFooter || ('Thanks for supporting ' + biz.name) %>
+      </footer>
+    </div>
+  </body>
+</html>
