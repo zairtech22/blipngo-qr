@@ -6,84 +6,85 @@
   <title><%= biz.publicTitle || (biz.name + ' — Poster') %></title>
 
   <style>
-    :root{
-      --bg: <%= biz.brandColor || '#FFD21E' %>;
-      --ink:#0A0A0A; --ink-soft:#2B2B2B;
-      --paper:#FFFBEA; --accent:#111; --muted:#4a4a4a;
+    :root {
+      --bg: <%= biz.brandColor ? biz.brandColor : '#FFD21E' %>;
+      --ink: #0A0A0A; 
+      --ink-soft: #2B2B2B;
+      --paper: #FFFBEA; 
+      --accent: #111; 
+      --muted: #4a4a4a;
     }
 
-    @page { size: 8.5in 11in; margin: 0.5in; }
-    html,body{ height:100%; }
-    body{
+    @page { margin: 0.5in; } /* shared margin */
+    html,body { height:100%; }
+    body {
       margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
       background: var(--bg); color: var(--ink);
       display:flex; align-items:center; justify-content:center; padding:24px;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
-    .poster{
+
+    /* page size classes */
+    body.letter { width: 8.5in; height: 11in; }
+    body.a4 { width: 210mm; height: 297mm; }
+
+    .poster {
       width: min(820px, 92vw);
       background: var(--bg);
-      border-radius: 24px; box-shadow: 0 10px 24px rgba(0,0,0,.15);
+      border-radius: 24px; 
+      box-shadow: 0 10px 24px rgba(0,0,0,.15);
       border: 6px solid var(--ink);
       padding: clamp(18px, 3vw, 32px);
     }
-    .row{ display:grid; gap: 18px; }
-    .brand{ display:grid; grid-template-columns: 96px 1fr; gap:16px; align-items:center; }
-    .logo{
-      width:96px; height:96px; border-radius: 20px; border:4px solid var(--ink);
-      background: var(--paper); display:grid; place-items:center; font-weight:800;
-      letter-spacing:.5px; text-align:center; padding:6px; line-height:1.1; overflow:hidden;
-    }
-    .logo img{ width:100%; height:100%; object-fit:contain; }
-    .bizname{ margin:0; font-size: clamp(28px, 4.6vw, 46px); line-height:1.05; text-transform:uppercase; }
 
-    .badge{
-      display:inline-block; border:4px solid var(--ink); background: var(--paper);
-      padding:6px 12px; border-radius:999px; font-weight:800; margin-top:8px;
+    .header { text-align:center; margin-bottom:20px; }
+    .logo {
+      width:120px; height:120px; border-radius: 20px; border:4px solid var(--ink);
+      background: var(--paper); margin:0 auto 12px;
+      display:flex; align-items:center; justify-content:center; overflow:hidden; font-weight:800;
     }
+    .logo img { width:100%; height:100%; object-fit:contain; }
+    .bizname { margin:0; font-size: clamp(28px, 4.6vw, 46px); font-weight:900; text-transform:uppercase; }
 
-    .cta{
-      margin:6px 0 0; font-weight:900; text-transform:uppercase;
+    .cta {
+      margin:12px 0; font-weight:900; text-transform:uppercase;
       font-size: clamp(30px, 6vw, 56px);
-      letter-spacing: 0.8px;
+      letter-spacing: 0.8px; text-align:center;
     }
-    .cta small{ display:block; font-size: clamp(16px, 2.4vw, 18px); font-weight:700; color:var(--ink-soft); text-transform:none; }
 
-    .steps{
-      list-style:none; padding:0; margin:14px 0 8px; display:grid; gap:10px;
+    .steps {
+      list-style:none; padding:0; margin:20px auto; max-width:600px;
       font-size: clamp(16px, 2.6vw, 20px); font-weight:700;
+      display:grid; gap:10px;
     }
-    .steps li{ display:grid; grid-template-columns: 30px 1fr; align-items:center; gap:10px; }
-    .steps .num{
+    .steps li { display:grid; grid-template-columns: 30px 1fr; align-items:center; gap:10px; }
+    .steps .num {
       width:30px; height:30px; border:3px solid var(--ink); background:var(--paper); border-radius:8px;
       display:grid; place-items:center; font-weight:900;
     }
 
-    .qr-grid{
+    .qr-grid {
       display:grid; gap:18px; grid-template-columns: repeat(3, 1fr);
-      margin-top: 12px;
+      margin-top: 24px;
     }
     @media (max-width: 820px){
       .qr-grid{ grid-template-columns: 1fr; }
-      .brand{ grid-template-columns: 72px 1fr; }
-      .logo{ width:72px; height:72px; }
     }
 
-    .qr-card{
+    .qr-card {
       background: var(--paper); border:4px solid var(--ink); border-radius:18px; padding:14px;
-      display:grid; grid-template-rows: auto 1fr auto; gap:10px; box-shadow: inset 0 -6px rgba(0,0,0,.05);
+      display:grid; gap:10px; box-shadow: inset 0 -6px rgba(0,0,0,.05);
     }
-    .qr-head{ display:flex; align-items:center; gap:10px; }
-    .qr-ico{ width:28px; height:28px; display:inline-grid; place-items:center; border:3px solid var(--ink); border-radius:8px; background:#fff; font-size:16px; font-weight:900; }
-    .qr-title{ font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
-    .qr-img{
+    .qr-head { display:flex; align-items:center; gap:10px; justify-content:center; }
+    .qr-ico { width:28px; height:28px; display:inline-grid; place-items:center; border:3px solid var(--ink); border-radius:8px; background:#fff; font-size:16px; font-weight:900; }
+    .qr-title { font-weight:900; text-transform:uppercase; letter-spacing:.4px; text-align:center; }
+    .qr-img {
       aspect-ratio: 1 / 1; width:100%; border:3px solid var(--ink); border-radius:12px; background:#fff;
       display:grid; place-items:center; overflow:hidden;
     }
-    .qr-img img{ width:100%; height:100%; object-fit:cover; }
-    .qr-caption{ text-align:center; font-size:14px; color:var(--muted); font-weight:700; word-break: break-word; }
+    .qr-img img { width:100%; height:100%; object-fit:cover; }
 
-    .fineprint{ margin-top: 10px; font-size:12px; color:var(--muted); font-weight:600; }
+    .fineprint { margin-top: 20px; text-align:center; font-size:12px; color:var(--muted); font-weight:600; }
 
     @media print {
       body { background:#fff !important; color:#000; }
@@ -91,10 +92,10 @@
   </style>
 </head>
 
-<body>
+<body class="<%= biz.pageSize === 'Letter' ? 'letter' : 'a4' %>">
   <main class="poster">
-    <!-- BRAND HEADER -->
-    <section class="row brand">
+    <!-- HEADER: Centered Logo + Business Name -->
+    <div class="header">
       <div class="logo">
         <% if (biz.showLogo && biz.logoUrl) { %>
           <img src="<%= biz.logoUrl %>" alt="<%= biz.name %> logo" />
@@ -102,36 +103,28 @@
           <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join('<br>') %></div>
         <% } %>
       </div>
-      <div>
-        <h1 class="bizname"><%= biz.name %></h1>
-        <div class="badge">SCAN • FOLLOW • SHOW • REDEEM</div>
-      </div>
-    </section>
+      <h1 class="bizname"><%= biz.name %></h1>
+    </div>
 
-    <!-- CTA / OFFER -->
-    <section class="row">
-      <h2 class="cta">
-        <%= biz.ctaText || 'GET A FREE DRINK!' %>
-        <small>
-          <%= (biz.publicSubtitle && biz.publicSubtitle.trim().length)
-                ? biz.publicSubtitle
-                : 'Fun perk for our community — no review required. 💛' %>
-        </small>
-      </h2>
-      <ol class="steps">
-        <% if (biz.steps && biz.steps.length) {
-             biz.steps.sort((a,b)=>a.order-b.order).forEach((s,i)=>{ %>
-          <li><span class="num"><%= i+1 %></span><span><%= s.text %></span></li>
-        <% }) } else { %>
-          <li><span class="num">1</span><span>Scan any QR below and open the app.</span></li>
-          <li><span class="num">2</span><span>Follow us and say hi in a comment or DM.</span></li>
-          <li><span class="num">3</span><span>Optional: Share feedback on Google — totally up to you.</span></li>
-          <li><span class="num">4</span><span>Show the screen at the counter to redeem your perk.</span></li>
-        <% } %>
-      </ol>
-    </section>
+    <!-- CTA -->
+    <h2 class="cta">
+      <%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %>
+    </h2>
 
-    <!-- QR GRID (shows only enabled platforms) -->
+    <!-- Steps -->
+    <ol class="steps">
+      <% if (biz.steps && biz.steps.length) {
+           biz.steps.sort((a,b)=>a.order-b.order).forEach((s,i)=>{ %>
+        <li><span class="num"><%= i+1 %></span><span><%= s.text %></span></li>
+      <% }) } else { %>
+        <li><span class="num">1</span><span>Scan a QR below to open our latest post.</span></li>
+        <li><span class="num">2</span><span>Engage with us → comment, share, or upload a photo and tag us.</span></li>
+        <li><span class="num">3</span><span>Check your screen → you’ll always get our offer, and sometimes a Golden Ticket surprise!</span></li>
+        <li><span class="num">4</span><span>Show your screen at the counter to redeem your perk.</span></li>
+      <% } %>
+    </ol>
+
+    <!-- QR GRID (only shows enabled platforms) -->
     <section class="qr-grid">
       <% if (biz.tiktokUrl) { %>
         <article class="qr-card">
@@ -142,7 +135,6 @@
           <div class="qr-img">
             <img alt="TikTok QR" src="/qr/<%= biz.slug %>/tiktok.png" />
           </div>
-          <div class="qr-caption"><%= biz.tiktokUrl %></div>
         </article>
       <% } %>
 
@@ -155,7 +147,6 @@
           <div class="qr-img">
             <img alt="Instagram QR" src="/qr/<%= biz.slug %>/instagram.png" />
           </div>
-          <div class="qr-caption"><%= biz.instagramUrl %></div>
         </article>
       <% } %>
 
@@ -168,11 +159,11 @@
           <div class="qr-img">
             <img alt="YouTube QR" src="/qr/<%= biz.slug %>/youtube.png" />
           </div>
-          <div class="qr-caption"><%= biz.youtubeUrl %></div>
         </article>
       <% } %>
     </section>
 
+    <!-- Footer -->
     <p class="fineprint">
       <%= (biz.publicFooter && biz.publicFooter.trim().length)
             ? biz.publicFooter
