@@ -18,7 +18,7 @@
       @media (max-width: 980px) { .grid-3 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
       @media (max-width: 680px) { .grid-3 { grid-template-columns: 1fr; } }
       .disabled-note { color:#b45309; font-size:12px; margin-top:-4px; }
-      .layout-row .qr { justify-content:flex-start; }
+      input[readonly] { background:#f8fafc; cursor:pointer; }
     </style>
   </head>
   <body>
@@ -26,7 +26,7 @@
       <div class="header">
         <div>
           <h1><%= biz.name %> — Admin</h1>
-          <div class="admin-subhead">Set brand theme, weekly links, and QR layout. QRs are dynamic & permanent.</div>
+          <div class="admin-subhead">Set brand theme, weekly links, QR layout, and share print/kiosk links.</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <form method="post" action="/business/<%= biz.slug %>/regen">
@@ -36,6 +36,7 @@
         </div>
       </div>
 
+      <!-- Basics -->
       <div class="card">
         <div class="row">
           <div>
@@ -54,6 +55,24 @@
         </div>
       </div>
 
+      <!-- Share block -->
+      <div class="card" style="margin-top:16px;">
+        <h2>Share</h2>
+        <div class="row">
+          <div>
+            <label>Printable link</label>
+            <input type="text" readonly value="<%= (BASE_URL || '') %>/p/<%= biz.slug %>?print=1" onclick="this.select()"/>
+            <div class="small">Opens a print-friendly view and auto-triggers the browser print dialog.</div>
+          </div>
+          <div>
+            <label>Tablet display (kiosk) link</label>
+            <input type="text" readonly value="<%= (BASE_URL || '') %>/p/<%= biz.slug %>?kiosk=1" onclick="this.select()"/>
+            <div class="small">Fullscreenable, read-only display that auto-refreshes to reflect your updates.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme, CTA & Layout -->
       <div class="card" style="margin-top:16px;">
         <h2>Theme, CTA & Layout</h2>
         <form method="post" action="/business/<%= biz.slug %>/theme">
@@ -96,7 +115,7 @@
               <label>QR Layout</label>
               <select name="qrLayout">
                 <option value="vertical" <%= (biz.qrLayout || 'vertical') === 'vertical' ? 'selected' : '' %>>Vertical (stacked)</option>
-                <option value="horizontal" <%= (biz.qrLayout || 'vertical') === 'horizontal' ? 'selected' : '' %>>Horizontal (side‑by‑side)</option>
+                <option value="horizontal" <%= (biz.qrLayout || 'vertical') === 'horizontal' ? 'selected' : '' %>>Horizontal (A / AA / AAA)</option>
               </select>
             </div>
           </div>
@@ -104,6 +123,7 @@
         </form>
       </div>
 
+      <!-- Platforms -->
       <div class="grid grid-3" style="margin-top:16px;">
         <!-- Instagram -->
         <div class="card platform-card">
@@ -111,12 +131,8 @@
             <div class="platform-title">Instagram</div>
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/instagram</code></div>
           </div>
-          <div class="qr">
-            <img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"/>
-          </div>
-          <% if (!biz.instagramUrl) { %>
-            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
-          <% } %>
+          <div class="qr"><img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"/></div>
+          <% if (!biz.instagramUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="instagram"/>
@@ -139,12 +155,8 @@
             <div class="platform-title">TikTok</div>
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/tiktok</code></div>
           </div>
-          <div class="qr">
-            <img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"/>
-          </div>
-          <% if (!biz.tiktokUrl) { %>
-            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
-          <% } %>
+          <div class="qr"><img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"/></div>
+          <% if (!biz.tiktokUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="tiktok"/>
@@ -167,12 +179,8 @@
             <div class="platform-title">YouTube</div>
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/youtube</code></div>
           </div>
-          <div class="qr">
-            <img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"/>
-          </div>
-          <% if (!biz.youtubeUrl) { %>
-            <div class="disabled-note">Currently disabled — scans fall back to the public page.</div>
-          <% } %>
+          <div class="qr"><img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"/></div>
+          <% if (!biz.youtubeUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="youtube"/>

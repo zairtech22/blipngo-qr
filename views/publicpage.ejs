@@ -4,6 +4,11 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title><%= biz.publicTitle || biz.name %></title>
+    <% if (typeof kiosk !== 'undefined' && kiosk) { %>
+      <meta name="robots" content="noindex,nofollow"/>
+      <meta name="apple-mobile-web-app-capable" content="yes"/>
+      <meta name="mobile-web-app-capable" content="yes"/>
+    <% } %>
     <style>
       :root {
         --bg1: <%= biz.themeBgHex  || '#0ea5e9' %>;
@@ -13,7 +18,6 @@
         --muted: #374151;
       }
 
-      /* Layout & background */
       html, body { height: 100%; }
       body {
         margin: 0;
@@ -21,12 +25,10 @@
         color: var(--text);
         position: relative;
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
       }
 
-      /* Gradient + subtle stripes + logo wallpaper live behind content */
-      .bg {
-        position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      }
+      .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
       .bg::before {
         content: '';
         position: absolute; inset: 0;
@@ -35,7 +37,6 @@
           repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 10px);
         background-blend-mode: overlay;
       }
-      /* Tiled brand logo pattern (very faint) */
       .bg.has-logo::after {
         content: '';
         position: absolute; inset: 0;
@@ -47,17 +48,11 @@
         filter: saturate(0) brightness(2);
       }
 
-      .container {
-        position: relative; z-index: 1;
-        max-width: 960px; margin: 0 auto; padding: 40px 20px; text-align: center;
-      }
-
-      .brand { margin-bottom: 24px; }
+      .container { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+      .brand { margin-bottom: 24px; user-select: none; }
       .brand img { max-height: 80px; margin-bottom: 14px; }
-
       h1 { font-size: 2.2rem; margin: 0 0 .25rem 0; color: var(--accent); }
 
-      /* 🔥 Bold CTA banner */
       .cta-top {
         display: inline-flex; align-items: center; gap: 10px;
         margin-top: 10px;
@@ -68,22 +63,15 @@
         box-shadow: 0 8px 20px rgba(0,0,0,.10);
         font-weight: 700;
         color: #0f172a;
+        user-select: none;
       }
-      .cta-sparkle {
-        width: 20px; height: 20px; display: inline-block;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
-      }
+      .cta-sparkle { width: 20px; height: 20px; display: inline-block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
 
       .qr-wrap { margin-top: 24px; }
       .qr-grid { gap: 16px; }
 
-      /* Vertical stack */
-      .vertical {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
+      .vertical { display: grid; grid-template-columns: 1fr; }
 
-      /* Horizontal: A / AA / AAA centered nicely */
       .horizontal {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -99,28 +87,34 @@
         padding: 18px;
         box-shadow: 0 6px 18px rgba(0,0,0,0.10);
         border: 1px solid rgba(255,255,255,.7);
+        user-select: none;
       }
-
-      /* Platform header with icon badge */
-      .plat-head {
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        margin-bottom: 10px;
-      }
+      .plat-head { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
       .plat-badge {
         display: inline-flex; align-items: center; gap: 8px;
         padding: 6px 10px; border-radius: 999px;
-        font-weight: 600; font-size: 14px; color: #fff;
+        font-weight: 600; font-size: 14px; color: #fff; user-select: none;
       }
       .insta { background: linear-gradient(45deg,#f58529,#feda77,#dd2a7b,#8134af,#515bd4); }
       .tiktok { background: #000; border: 1px solid #222; }
       .youtube { background: #ff0000; }
-
       .plat-icon { width: 18px; height: 18px; display: inline-block; }
 
       .qr { margin-top: 8px; }
-      .qr img { width: 200px; height: auto; border-radius: 12px; border: 6px solid rgba(255,255,255,.85); box-shadow: 0 8px 22px rgba(0,0,0,.12); }
+      .qr img {
+        width: <%= (typeof kiosk !== 'undefined' && kiosk) ? '280px' : '200px' %>;
+        height: auto; border-radius: 12px;
+        border: 6px solid rgba(255,255,255,.85);
+        box-shadow: 0 8px 22px rgba(0,0,0,.12);
+      }
 
       footer { margin-top: 40px; font-size: .9rem; color: var(--muted); }
+      <% if (typeof kiosk !== 'undefined' && kiosk) { %>
+      /* Kiosk tweaks: hide footer, bigger spacing, disable selection/zoom */
+      footer { display:none; }
+      body { touch-action: manipulation; }
+      .container { padding-bottom: 16px; }
+      <% } %>
 
       @media print {
         body { background: #fff !important; color: #000; }
@@ -130,8 +124,8 @@
       }
     </style>
   </head>
-  <body>
-    <!-- Branded background layers -->
+  <body oncontextmenu="return false">
+    <!-- Background -->
     <% if (biz.logoUrl) { %>
       <div class="bg has-logo" style="--logo-url: url('<%= biz.logoUrl %>');"></div>
     <% } else { %>
@@ -145,9 +139,7 @@
         <% } %>
         <h1><%= biz.publicTitle || ('Welcome to ' + biz.name) %></h1>
 
-        <!-- 💥 Strong call-to-action -->
         <div class="cta-top">
-          <!-- sparkle SVG -->
           <svg class="cta-sparkle" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 2l2.2 4.8L19 9l-4.8 2.2L12 16l-2.2-4.8L5 9l4.8-2.2L12 2z" fill="currentColor" opacity=".85"/>
           </svg>
@@ -157,12 +149,10 @@
 
       <div class="qr-wrap">
         <div class="qr-grid <%= (biz.qrLayout || 'vertical') %>">
-
           <% if (biz.instagramUrl) { %>
             <div class="qr-item">
               <div class="plat-head">
                 <span class="plat-badge insta">
-                  <!-- Instagram glyph -->
                   <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <rect x="3" y="3" width="18" height="18" rx="5" stroke="white" stroke-width="2"/>
                     <circle cx="12" cy="12" r="4" stroke="white" stroke-width="2"/>
@@ -179,7 +169,6 @@
             <div class="qr-item">
               <div class="plat-head">
                 <span class="plat-badge tiktok">
-                  <!-- TikTok glyph (simplified) -->
                   <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M14 4c1.2 2.2 2.9 3.5 5 3.8v3.2c-1.9-.1-3.6-.8-5-2v6.4a5 5 0 11-3.8-4.9V13a2.2 2.2 0 102.2 2.2V4h1.6z" fill="#fff"/>
                   </svg>
@@ -194,7 +183,6 @@
             <div class="qr-item">
               <div class="plat-head">
                 <span class="plat-badge youtube">
-                  <!-- YouTube glyph -->
                   <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <rect x="3" y="6" width="18" height="12" rx="3" fill="#fff" opacity=".2"/>
                     <path d="M10 9l6 3-6 3V9z" fill="#fff"/>
@@ -205,15 +193,32 @@
               <div class="qr"><img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"></div>
             </div>
           <% } %>
-
         </div>
       </div>
 
-      <footer>
-        <%= (biz.publicFooter && biz.publicFooter.trim().length > 0) 
-              ? biz.publicFooter 
-              : ('Thanks for supporting ' + biz.name) %>
-      </footer>
+      <% if (!(typeof kiosk !== 'undefined' && kiosk)) { %>
+        <footer>
+          <%= (biz.publicFooter && biz.publicFooter.trim().length > 0) 
+                ? biz.publicFooter 
+                : ('Thanks for supporting ' + biz.name) %>
+        </footer>
+      <% } %>
     </div>
+
+    <% if (typeof printMode !== 'undefined' && printMode) { %>
+      <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>
+    <% } %>
+
+    <% if (typeof kiosk !== 'undefined' && kiosk) { %>
+      <script>
+        // Kiosk: discourage interactions and (optionally) refresh to pick up admin updates
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+          if (['+', '-', '0'].includes(e.key) && (e.ctrlKey || e.metaKey)) e.preventDefault();
+        });
+        // Refresh every 5 minutes (adjust if you like)
+        setInterval(() => { location.reload(); }, 5 * 60 * 1000);
+      </script>
+    <% } %>
   </body>
 </html>

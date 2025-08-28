@@ -12,6 +12,9 @@ const prisma = new PrismaClient();
 const app = express();
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
+// expose BASE_URL to all views
+app.locals.BASE_URL = BASE_URL;
+
 // --- middleware & view engine ---
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -24,7 +27,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Home
 app.get('/', async (req, res) => {
   const businesses = await prisma.business.findMany({ orderBy: { createdAt: 'desc' } });
-  res.render('index', { businesses });
+  res.render('index', { businesses, BASE_URL });
 });
 
 // Create business
@@ -61,7 +64,7 @@ app.post('/business', async (req, res) => {
 app.get('/business/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
-  res.render('business', { biz });
+  res.render('business', { biz, BASE_URL });
 });
 
 // Update platform URL (weekly links) - single input per platform
@@ -174,11 +177,14 @@ app.post('/business/:slug/delete', async (req, res) => {
   } catch (e) { console.error(e); res.status(500).send('Delete failed: ' + (e?.message || e)); }
 });
 
-// Public printable page
+// Public printable / display page
 app.get('/p/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
-  res.render('publicpage', { biz });
+
+  const kiosk = req.query.kiosk === '1';
+  const printMode = req.query.print === '1';
+  res.render('publicpage', { biz, kiosk, printMode, BASE_URL });
 });
 
 // Redirect (scans)
@@ -239,5 +245,5 @@ app.get('/qr/:slug/:platform.png', async (req, res) => {
 // --- start server ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on ${BASE_URL}`);
 });
