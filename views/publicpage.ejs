@@ -1,224 +1,183 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title><%= biz.publicTitle || biz.name %></title>
-    <% if (typeof kiosk !== 'undefined' && kiosk) { %>
-      <meta name="robots" content="noindex,nofollow"/>
-      <meta name="apple-mobile-web-app-capable" content="yes"/>
-      <meta name="mobile-web-app-capable" content="yes"/>
-    <% } %>
-    <style>
-      :root {
-        --bg1: <%= biz.themeBgHex  || '#0ea5e9' %>;
-        --bg2: <%= biz.themeBgHex2 || '#6366f1' %>;
-        --accent: <%= biz.themeHex || '#111827' %>;
-        --text: #111827;
-        --muted: #374151;
-      }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= biz.publicTitle || (biz.name + ' — Poster') %></title>
 
-      html, body { height: 100%; }
-      body {
-        margin: 0;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-        color: var(--text);
-        position: relative;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
+  <style>
+    :root{
+      --bg: <%= biz.brandColor || '#FFD21E' %>;
+      --ink:#0A0A0A; --ink-soft:#2B2B2B;
+      --paper:#FFFBEA; --accent:#111; --muted:#4a4a4a;
+    }
 
-      .bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-      .bg::before {
-        content: '';
-        position: absolute; inset: 0;
-        background:
-          linear-gradient(135deg, var(--bg1), var(--bg2)),
-          repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 10px);
-        background-blend-mode: overlay;
-      }
-      .bg.has-logo::after {
-        content: '';
-        position: absolute; inset: 0;
-        background-image: var(--logo-url);
-        background-repeat: repeat;
-        background-size: 140px auto;
-        background-position: center;
-        opacity: .06;
-        filter: saturate(0) brightness(2);
-      }
+    @page { size: 8.5in 11in; margin: 0.5in; }
+    html,body{ height:100%; }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background: var(--bg); color: var(--ink);
+      display:flex; align-items:center; justify-content:center; padding:24px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .poster{
+      width: min(820px, 92vw);
+      background: var(--bg);
+      border-radius: 24px; box-shadow: 0 10px 24px rgba(0,0,0,.15);
+      border: 6px solid var(--ink);
+      padding: clamp(18px, 3vw, 32px);
+    }
+    .row{ display:grid; gap: 18px; }
+    .brand{ display:grid; grid-template-columns: 96px 1fr; gap:16px; align-items:center; }
+    .logo{
+      width:96px; height:96px; border-radius: 20px; border:4px solid var(--ink);
+      background: var(--paper); display:grid; place-items:center; font-weight:800;
+      letter-spacing:.5px; text-align:center; padding:6px; line-height:1.1; overflow:hidden;
+    }
+    .logo img{ width:100%; height:100%; object-fit:contain; }
+    .bizname{ margin:0; font-size: clamp(28px, 4.6vw, 46px); line-height:1.05; text-transform:uppercase; }
 
-      .container { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 20px; text-align: center; }
-      .brand { margin-bottom: 24px; user-select: none; }
-      .brand img { max-height: 80px; margin-bottom: 14px; }
-      h1 { font-size: 2.2rem; margin: 0 0 .25rem 0; color: var(--accent); }
+    .badge{
+      display:inline-block; border:4px solid var(--ink); background: var(--paper);
+      padding:6px 12px; border-radius:999px; font-weight:800; margin-top:8px;
+    }
 
-      .cta-top {
-        display: inline-flex; align-items: center; gap: 10px;
-        margin-top: 10px;
-        padding: 12px 18px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
-        border: 1px solid rgba(255,255,255,.65);
-        box-shadow: 0 8px 20px rgba(0,0,0,.10);
-        font-weight: 700;
-        color: #0f172a;
-        user-select: none;
-      }
-      .cta-sparkle { width: 20px; height: 20px; display: inline-block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
+    .cta{
+      margin:6px 0 0; font-weight:900; text-transform:uppercase;
+      font-size: clamp(30px, 6vw, 56px);
+      letter-spacing: 0.8px;
+    }
+    .cta small{ display:block; font-size: clamp(16px, 2.4vw, 18px); font-weight:700; color:var(--ink-soft); text-transform:none; }
 
-      .qr-wrap { margin-top: 24px; }
-      .qr-grid { gap: 16px; }
+    .steps{
+      list-style:none; padding:0; margin:14px 0 8px; display:grid; gap:10px;
+      font-size: clamp(16px, 2.6vw, 20px); font-weight:700;
+    }
+    .steps li{ display:grid; grid-template-columns: 30px 1fr; align-items:center; gap:10px; }
+    .steps .num{
+      width:30px; height:30px; border:3px solid var(--ink); background:var(--paper); border-radius:8px;
+      display:grid; place-items:center; font-weight:900;
+    }
 
-      .vertical { display: grid; grid-template-columns: 1fr; }
+    .qr-grid{
+      display:grid; gap:18px; grid-template-columns: repeat(3, 1fr);
+      margin-top: 12px;
+    }
+    @media (max-width: 820px){
+      .qr-grid{ grid-template-columns: 1fr; }
+      .brand{ grid-template-columns: 72px 1fr; }
+      .logo{ width:72px; height:72px; }
+    }
 
-      .horizontal {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        justify-content: center;
-        gap: 16px;
-      }
-      .horizontal .qr-item { max-width: 300px; margin: 0 auto; }
+    .qr-card{
+      background: var(--paper); border:4px solid var(--ink); border-radius:18px; padding:14px;
+      display:grid; grid-template-rows: auto 1fr auto; gap:10px; box-shadow: inset 0 -6px rgba(0,0,0,.05);
+    }
+    .qr-head{ display:flex; align-items:center; gap:10px; }
+    .qr-ico{ width:28px; height:28px; display:inline-grid; place-items:center; border:3px solid var(--ink); border-radius:8px; background:#fff; font-size:16px; font-weight:900; }
+    .qr-title{ font-weight:900; text-transform:uppercase; letter-spacing:.4px; }
+    .qr-img{
+      aspect-ratio: 1 / 1; width:100%; border:3px solid var(--ink); border-radius:12px; background:#fff;
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .qr-img img{ width:100%; height:100%; object-fit:cover; }
+    .qr-caption{ text-align:center; font-size:14px; color:var(--muted); font-weight:700; word-break: break-word; }
 
-      .qr-item {
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(8px);
-        border-radius: 20px;
-        padding: 18px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.10);
-        border: 1px solid rgba(255,255,255,.7);
-        user-select: none;
-      }
-      .plat-head { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
-      .plat-badge {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 6px 10px; border-radius: 999px;
-        font-weight: 600; font-size: 14px; color: #fff; user-select: none;
-      }
-      .insta { background: linear-gradient(45deg,#f58529,#feda77,#dd2a7b,#8134af,#515bd4); }
-      .tiktok { background: #000; border: 1px solid #222; }
-      .youtube { background: #ff0000; }
-      .plat-icon { width: 18px; height: 18px; display: inline-block; }
+    .fineprint{ margin-top: 10px; font-size:12px; color:var(--muted); font-weight:600; }
 
-      .qr { margin-top: 8px; }
-      .qr img {
-        width: <%= (typeof kiosk !== 'undefined' && kiosk) ? '280px' : '200px' %>;
-        height: auto; border-radius: 12px;
-        border: 6px solid rgba(255,255,255,.85);
-        box-shadow: 0 8px 22px rgba(0,0,0,.12);
-      }
+    @media print {
+      body { background:#fff !important; color:#000; }
+    }
+  </style>
+</head>
 
-      footer { margin-top: 40px; font-size: .9rem; color: var(--muted); }
-      <% if (typeof kiosk !== 'undefined' && kiosk) { %>
-      /* Kiosk tweaks: hide footer, bigger spacing, disable selection/zoom */
-      footer { display:none; }
-      body { touch-action: manipulation; }
-      .container { padding-bottom: 16px; }
-      <% } %>
-
-      @media print {
-        body { background: #fff !important; color: #000; }
-        .bg { display:none; }
-        .qr-item { background:#fff !important; box-shadow:none; border:1px solid #ddd; }
-        .cta-top { border:1px solid #000; background:#fff; color:#000; box-shadow:none; }
-      }
-    </style>
-  </head>
-  <body oncontextmenu="return false">
-    <!-- Background -->
-    <% if (biz.logoUrl) { %>
-      <div class="bg has-logo" style="--logo-url: url('<%= biz.logoUrl %>');"></div>
-    <% } else { %>
-      <div class="bg"></div>
-    <% } %>
-
-    <div class="container">
-      <div class="brand">
+<body>
+  <main class="poster">
+    <!-- BRAND HEADER -->
+    <section class="row brand">
+      <div class="logo">
         <% if (biz.showLogo && biz.logoUrl) { %>
-          <img src="<%= biz.logoUrl %>" alt="Logo"/>
+          <img src="<%= biz.logoUrl %>" alt="<%= biz.name %> logo" />
+        <% } else { %>
+          <div><%= (biz.name || 'Your Logo').split(' ').slice(0,2).join('<br>') %></div>
         <% } %>
-        <h1><%= biz.publicTitle || ('Welcome to ' + biz.name) %></h1>
-
-        <div class="cta-top">
-          <svg class="cta-sparkle" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 2l2.2 4.8L19 9l-4.8 2.2L12 16l-2.2-4.8L5 9l4.8-2.2L12 2z" fill="currentColor" opacity=".85"/>
-          </svg>
-          <span><%= biz.publicSubtitle && biz.publicSubtitle.trim().length ? biz.publicSubtitle : 'Comment, share, or show your post for a discount!' %></span>
-        </div>
       </div>
-
-      <div class="qr-wrap">
-        <div class="qr-grid <%= (biz.qrLayout || 'vertical') %>">
-          <% if (biz.instagramUrl) { %>
-            <div class="qr-item">
-              <div class="plat-head">
-                <span class="plat-badge insta">
-                  <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="5" stroke="white" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="4" stroke="white" stroke-width="2"/>
-                    <circle cx="17.5" cy="6.5" r="1.5" fill="white"/>
-                  </svg>
-                  Instagram
-                </span>
-              </div>
-              <div class="qr"><img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"></div>
-            </div>
-          <% } %>
-
-          <% if (biz.tiktokUrl) { %>
-            <div class="qr-item">
-              <div class="plat-head">
-                <span class="plat-badge tiktok">
-                  <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M14 4c1.2 2.2 2.9 3.5 5 3.8v3.2c-1.9-.1-3.6-.8-5-2v6.4a5 5 0 11-3.8-4.9V13a2.2 2.2 0 102.2 2.2V4h1.6z" fill="#fff"/>
-                  </svg>
-                  TikTok
-                </span>
-              </div>
-              <div class="qr"><img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"></div>
-            </div>
-          <% } %>
-
-          <% if (biz.youtubeUrl) { %>
-            <div class="qr-item">
-              <div class="plat-head">
-                <span class="plat-badge youtube">
-                  <svg class="plat-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="6" width="18" height="12" rx="3" fill="#fff" opacity=".2"/>
-                    <path d="M10 9l6 3-6 3V9z" fill="#fff"/>
-                  </svg>
-                  YouTube
-                </span>
-              </div>
-              <div class="qr"><img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"></div>
-            </div>
-          <% } %>
-        </div>
+      <div>
+        <h1 class="bizname"><%= biz.name %></h1>
+        <div class="badge">SCAN • FOLLOW • SHOW • REDEEM</div>
       </div>
+    </section>
 
-      <% if (!(typeof kiosk !== 'undefined' && kiosk)) { %>
-        <footer>
-          <%= (biz.publicFooter && biz.publicFooter.trim().length > 0) 
-                ? biz.publicFooter 
-                : ('Thanks for supporting ' + biz.name) %>
-        </footer>
+    <!-- CTA / OFFER -->
+    <section class="row">
+      <h2 class="cta">
+        <%= biz.ctaText || 'GET A FREE DRINK!' %>
+        <small>
+          <%= (biz.publicSubtitle && biz.publicSubtitle.trim().length)
+                ? biz.publicSubtitle
+                : 'Fun perk for our community — no review required. 💛' %>
+        </small>
+      </h2>
+      <ol class="steps">
+        <% if (biz.steps && biz.steps.length) {
+             biz.steps.sort((a,b)=>a.order-b.order).forEach((s,i)=>{ %>
+          <li><span class="num"><%= i+1 %></span><span><%= s.text %></span></li>
+        <% }) } else { %>
+          <li><span class="num">1</span><span>Scan any QR below and open the app.</span></li>
+          <li><span class="num">2</span><span>Follow us and say hi in a comment or DM.</span></li>
+          <li><span class="num">3</span><span>Optional: Share feedback on Google — totally up to you.</span></li>
+          <li><span class="num">4</span><span>Show the screen at the counter to redeem your perk.</span></li>
+        <% } %>
+      </ol>
+    </section>
+
+    <!-- QR GRID (shows only enabled platforms) -->
+    <section class="qr-grid">
+      <% if (biz.tiktokUrl) { %>
+        <article class="qr-card">
+          <div class="qr-head">
+            <div class="qr-ico">♪</div>
+            <div class="qr-title">TikTok</div>
+          </div>
+          <div class="qr-img">
+            <img alt="TikTok QR" src="/qr/<%= biz.slug %>/tiktok.png" />
+          </div>
+          <div class="qr-caption"><%= biz.tiktokUrl %></div>
+        </article>
       <% } %>
-    </div>
 
-    <% if (typeof printMode !== 'undefined' && printMode) { %>
-      <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>
-    <% } %>
+      <% if (biz.instagramUrl) { %>
+        <article class="qr-card">
+          <div class="qr-head">
+            <div class="qr-ico">IG</div>
+            <div class="qr-title">Instagram</div>
+          </div>
+          <div class="qr-img">
+            <img alt="Instagram QR" src="/qr/<%= biz.slug %>/instagram.png" />
+          </div>
+          <div class="qr-caption"><%= biz.instagramUrl %></div>
+        </article>
+      <% } %>
 
-    <% if (typeof kiosk !== 'undefined' && kiosk) { %>
-      <script>
-        // Kiosk: discourage interactions and (optionally) refresh to pick up admin updates
-        document.addEventListener('gesturestart', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-          if (['+', '-', '0'].includes(e.key) && (e.ctrlKey || e.metaKey)) e.preventDefault();
-        });
-        // Refresh every 5 minutes (adjust if you like)
-        setInterval(() => { location.reload(); }, 5 * 60 * 1000);
-      </script>
-    <% } %>
-  </body>
+      <% if (biz.youtubeUrl) { %>
+        <article class="qr-card">
+          <div class="qr-head">
+            <div class="qr-ico">▶</div>
+            <div class="qr-title">YouTube Shorts</div>
+          </div>
+          <div class="qr-img">
+            <img alt="YouTube QR" src="/qr/<%= biz.slug %>/youtube.png" />
+          </div>
+          <div class="qr-caption"><%= biz.youtubeUrl %></div>
+        </article>
+      <% } %>
+    </section>
+
+    <p class="fineprint">
+      <%= (biz.publicFooter && biz.publicFooter.trim().length)
+            ? biz.publicFooter
+            : 'Perks tied to follows/check-ins. Feedback appreciated, never required.' %>
+    </p>
+  </main>
+</body>
 </html>

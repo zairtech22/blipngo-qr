@@ -19,6 +19,7 @@
       @media (max-width: 680px) { .grid-3 { grid-template-columns: 1fr; } }
       .disabled-note { color:#b45309; font-size:12px; margin-top:-4px; }
       input[readonly] { background:#f8fafc; cursor:pointer; }
+      textarea { width:100%; resize:vertical; }
     </style>
   </head>
   <body>
@@ -26,7 +27,9 @@
       <div class="header">
         <div>
           <h1><%= biz.name %> — Admin</h1>
-          <div class="admin-subhead">Set brand theme, weekly links, QR layout, and share print/kiosk links.</div>
+          <div class="admin-subhead">
+            Manage theme, CTA, steps, weekly links, QR layout, and share links.
+          </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <form method="post" action="/business/<%= biz.slug %>/regen">
@@ -36,7 +39,7 @@
         </div>
       </div>
 
-      <!-- Basics -->
+      <!-- Info -->
       <div class="card">
         <div class="row">
           <div>
@@ -44,12 +47,13 @@
             <div><code><%= biz.slug %></code></div>
           </div>
           <div>
-            <label>Public printable page</label>
+            <label>Public poster page</label>
             <div><a href="/p/<%= biz.slug %>" target="_blank">/p/<%= biz.slug %></a></div>
           </div>
         </div>
-        <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
-          <form method="post" action="/business/<%= biz.slug %>/delete" onsubmit="return confirm('Delete this business and all data? This cannot be undone.')">
+        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+          <form method="post" action="/business/<%= biz.slug %>/delete" 
+                onsubmit="return confirm('Delete this business and all data? This cannot be undone.')">
             <button type="submit" style="background:#b91c1c;">Delete Business</button>
           </form>
         </div>
@@ -62,24 +66,24 @@
           <div>
             <label>Printable link</label>
             <input type="text" readonly value="<%= (BASE_URL || '') %>/p/<%= biz.slug %>?print=1" onclick="this.select()"/>
-            <div class="small">Opens a print-friendly view and auto-triggers the browser print dialog.</div>
+            <div class="small">Print-friendly view; auto-triggers browser print dialog.</div>
           </div>
           <div>
             <label>Tablet display (kiosk) link</label>
             <input type="text" readonly value="<%= (BASE_URL || '') %>/p/<%= biz.slug %>?kiosk=1" onclick="this.select()"/>
-            <div class="small">Fullscreenable, read-only display that auto-refreshes to reflect your updates.</div>
+            <div class="small">Fullscreen read-only display; auto-refreshes updates.</div>
           </div>
         </div>
       </div>
 
-      <!-- Theme, CTA & Layout -->
+      <!-- Theme, CTA & Steps -->
       <div class="card" style="margin-top:16px;">
         <h2>Theme, CTA & Layout</h2>
         <form method="post" action="/business/<%= biz.slug %>/theme">
           <div class="row">
             <div>
-              <label>Accent Color</label>
-              <input type="color" name="themeHex" value="<%= biz.themeHex || '#111827' %>"/>
+              <label>Poster Background Color</label>
+              <input type="color" name="brandColor" value="<%= biz.brandColor || '#FFD21E' %>"/>
             </div>
             <div>
               <label>Show Logo</label>
@@ -88,38 +92,53 @@
           </div>
           <div class="row">
             <div>
-              <label>Background Gradient Start</label>
-              <input type="color" name="themeBgHex" value="<%= biz.themeBgHex || '#0ea5e9' %>"/>
-            </div>
-            <div>
-              <label>Background Gradient End</label>
-              <input type="color" name="themeBgHex2" value="<%= biz.themeBgHex2 || '#6366f1' %>"/>
-            </div>
-          </div>
-          <div class="row">
-            <div>
               <label>Public Title</label>
-              <input type="text" name="publicTitle" value="<%= biz.publicTitle || 'Scan to See Our Latest Posts' %>"/>
+              <input type="text" name="publicTitle" value="<%= biz.publicTitle || 'Follow & Say Hi!' %>"/>
             </div>
             <div>
-              <label>Public Subtitle / CTA (shown under logo)</label>
-              <input type="text" name="publicSubtitle" value="<%= biz.publicSubtitle || 'Comment or share to get a discount!' %>"/>
+              <label>Public Subtitle</label>
+              <input type="text" name="publicSubtitle" 
+                     value="<%= biz.publicSubtitle || 'Comment, share, or show your post for a perk!' %>"/>
             </div>
           </div>
           <div class="row">
             <div>
-              <label>Footer Text</label>
-              <input type="text" name="publicFooter" value="<%= biz.publicFooter || 'Thanks for supporting us!' %>"/>
+              <label>Main CTA Text</label>
+              <input type="text" name="ctaText" value="<%= biz.ctaText || 'GET A FREE DRINK!' %>"/>
+            </div>
+            <div>
+              <label>Footer / Fine Print</label>
+              <input type="text" name="publicFooter" 
+                     value="<%= biz.publicFooter || 'Perks tied to follows/check-ins. Feedback appreciated, never required.' %>"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Steps (one per line)</label>
+              <textarea name="steps" rows="5"><% 
+                if (biz.steps && biz.steps.length) {
+                  biz.steps.sort((a,b) => a.order - b.order).forEach(s => { %><%= s.text %>
+<% }) } else { %>Scan any QR below and open the app.
+Follow us and say hi in a comment or DM.
+Optional: Share feedback on Google — totally up to you.
+Show the screen at the counter to redeem your perk.<% } %></textarea>
+              <div class="small">These appear as the numbered list on the poster.</div>
             </div>
             <div>
               <label>QR Layout</label>
               <select name="qrLayout">
-                <option value="vertical" <%= (biz.qrLayout || 'vertical') === 'vertical' ? 'selected' : '' %>>Vertical (stacked)</option>
-                <option value="horizontal" <%= (biz.qrLayout || 'vertical') === 'horizontal' ? 'selected' : '' %>>Horizontal (A / AA / AAA)</option>
+                <option value="vertical" <%= (biz.qrLayout || 'vertical') === 'vertical' ? 'selected' : '' %>>
+                  Vertical (stacked)
+                </option>
+                <option value="horizontal" <%= (biz.qrLayout || 'vertical') === 'horizontal' ? 'selected' : '' %>>
+                  Horizontal (A / AA / AAA)
+                </option>
               </select>
             </div>
           </div>
-          <div style="text-align:right; margin-top:8px;"><button type="submit">Save Theme</button></div>
+          <div style="text-align:right; margin-top:8px;">
+            <button type="submit">Save Theme</button>
+          </div>
         </form>
       </div>
 
@@ -132,19 +151,26 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/instagram</code></div>
           </div>
           <div class="qr"><img src="/qr/<%= biz.slug %>/instagram.png" alt="Instagram QR"/></div>
-          <% if (!biz.instagramUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
+          <% if (!biz.instagramUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to poster page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="instagram"/>
               <label class="small">Target URL</label>
-              <input type="url" name="newUrl" value="<%= biz.instagramUrl || '' %>" placeholder="https://www.instagram.com/p/...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
+              <input type="url" name="newUrl" value="<%= biz.instagramUrl || '' %>" 
+                     placeholder="https://www.instagram.com/p/...">
+              <div style="text-align:right; margin-top:6px;">
+                <button type="submit">Update URL</button>
+              </div>
             </form>
-            <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
+            <form method="post" action="/business/<%= biz.slug %>/toggle" 
+                  style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="instagram"/>
               <label class="small">Enabled</label>
-              <input type="checkbox" name="enabled" <%= biz.instagramUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
+              <input type="checkbox" name="enabled" <%= biz.instagramUrl ? 'checked' : '' %> 
+                     onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -156,19 +182,26 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/tiktok</code></div>
           </div>
           <div class="qr"><img src="/qr/<%= biz.slug %>/tiktok.png" alt="TikTok QR"/></div>
-          <% if (!biz.tiktokUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
+          <% if (!biz.tiktokUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to poster page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="tiktok"/>
               <label class="small">Target URL</label>
-              <input type="url" name="newUrl" value="<%= biz.tiktokUrl || '' %>" placeholder="https://www.tiktok.com/...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
+              <input type="url" name="newUrl" value="<%= biz.tiktokUrl || '' %>" 
+                     placeholder="https://www.tiktok.com/...">
+              <div style="text-align:right; margin-top:6px;">
+                <button type="submit">Update URL</button>
+              </div>
             </form>
-            <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
+            <form method="post" action="/business/<%= biz.slug %>/toggle" 
+                  style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="tiktok"/>
               <label class="small">Enabled</label>
-              <input type="checkbox" name="enabled" <%= biz.tiktokUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
+              <input type="checkbox" name="enabled" <%= biz.tiktokUrl ? 'checked' : '' %> 
+                     onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -180,19 +213,26 @@
             <div class="kv">Scan URL: <code>/r/<%= biz.slug %>/youtube</code></div>
           </div>
           <div class="qr"><img src="/qr/<%= biz.slug %>/youtube.png" alt="YouTube QR"/></div>
-          <% if (!biz.youtubeUrl) { %><div class="disabled-note">Currently disabled — scans fall back to the public page.</div><% } %>
+          <% if (!biz.youtubeUrl) { %>
+            <div class="disabled-note">Currently disabled — scans fall back to poster page.</div>
+          <% } %>
           <div class="platform-actions">
             <form method="post" action="/business/<%= biz.slug %>/update">
               <input type="hidden" name="platform" value="youtube"/>
               <label class="small">Target URL</label>
-              <input type="url" name="newUrl" value="<%= biz.youtubeUrl || '' %>" placeholder="https://www.youtube.com/watch?v=...">
-              <div style="text-align:right; margin-top:6px;"><button type="submit">Update URL</button></div>
+              <input type="url" name="newUrl" value="<%= biz.youtubeUrl || '' %>" 
+                     placeholder="https://www.youtube.com/watch?v=...">
+              <div style="text-align:right; margin-top:6px;">
+                <button type="submit">Update URL</button>
+              </div>
             </form>
-            <form method="post" action="/business/<%= biz.slug %>/toggle" style="border-top:1px solid #e5e7eb; padding-top:8px;">
+            <form method="post" action="/business/<%= biz.slug %>/toggle" 
+                  style="border-top:1px solid #e5e7eb; padding-top:8px;">
               <input type="hidden" name="platform" value="youtube"/>
               <label class="small">Enabled</label>
-              <input type="checkbox" name="enabled" <%= biz.youtubeUrl ? 'checked' : '' %> onchange="this.form.submit()" />
-              <div class="hint">Toggle only affects the target URL; the QR stays the same.</div>
+              <input type="checkbox" name="enabled" <%= biz.youtubeUrl ? 'checked' : '' %> 
+                     onchange="this.form.submit()" />
+              <div class="hint">Toggle only affects the target URL; QR stays the same.</div>
             </form>
           </div>
         </div>
@@ -202,9 +242,9 @@
         <h2>API Endpoints</h2>
         <ul class="small">
           <li>Scan redirect: <code>/r/:slug/:platform</code></li>
-          <li>Printable page: <code>/p/:slug</code></li>
-          <li>QR image (dynamic): <code>/qr/:slug/:platform.png</code></li>
-          <li>Analytics (JSON): <code>/business/:slug/analytics.json</code></li>
+          <li>Poster page: <code>/p/:slug</code></li>
+          <li>QR image: <code>/qr/:slug/:platform.png</code></li>
+          <li>Analytics JSON: <code>/business/:slug/analytics.json</code></li>
         </ul>
       </div>
     </div>

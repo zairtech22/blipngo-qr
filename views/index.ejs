@@ -18,7 +18,6 @@
       <div class="grid" style="grid-template-columns: 2fr 1.2fr;">
         <div class="card">
           <h2>Create a business</h2>
-          <p class="small">Logos are by URL for the MVP. You can add uploads later.</p>
           <form method="post" action="/business">
             <div class="row">
               <div>
@@ -30,49 +29,57 @@
                 <input type="text" name="slug" placeholder="auto from name" />
               </div>
             </div>
+
             <div class="row">
               <div>
                 <label>Logo URL (optional)</label>
                 <input type="url" name="logoUrl" placeholder="https://..." />
               </div>
               <div>
-                <label>Accent Color</label>
-                <input type="color" name="themeHex" value="#111827"/>
+                <label>Poster Background Color</label>
+                <input type="color" name="brandColor" value="#FFD21E"/>
               </div>
             </div>
-            <div class="row">
-              <div>
-                <label>Background Gradient Start</label>
-                <input type="color" name="themeBgHex" value="#0ea5e9"/>
-              </div>
-              <div>
-                <label>Background Gradient End</label>
-                <input type="color" name="themeBgHex2" value="#6366f1"/>
-              </div>
-            </div>
+
             <div class="row">
               <div>
                 <label>Public Title</label>
-                <input type="text" name="publicTitle" placeholder="Scan to See Our Latest Posts"/>
+                <input type="text" name="publicTitle" placeholder="Follow & Say Hi!"/>
               </div>
               <div>
-                <label>Public Subtitle / CTA</label>
-                <input type="text" name="publicSubtitle" placeholder="Comment or share to get a discount!"/>
+                <label>Public Subtitle (small line)</label>
+                <input type="text" name="publicSubtitle" placeholder="Comment, share, or show your post for a perk!"/>
               </div>
             </div>
+
             <div class="row">
               <div>
-                <label>Footer Text</label>
-                <input type="text" name="publicFooter" placeholder="Thanks for supporting us!"/>
+                <label>Main CTA Text</label>
+                <input type="text" name="ctaText" placeholder="GET A FREE DRINK!"/>
               </div>
+              <div>
+                <label>Footer / Fine Print</label>
+                <input type="text" name="publicFooter" placeholder="Perks tied to follows/check-ins. Feedback appreciated, never required."/>
+              </div>
+            </div>
+
+            <div class="row">
               <div>
                 <label>QR Layout</label>
                 <select name="qrLayout">
                   <option value="vertical" selected>Vertical (stacked)</option>
-                  <option value="horizontal">Horizontal (side‑by‑side)</option>
+                  <option value="horizontal">Horizontal (A / AA / AAA)</option>
                 </select>
               </div>
+              <div>
+                <label>Initial Steps (one per line)</label>
+                <textarea name="steps" rows="5" placeholder="Scan any QR below and open the app.
+Follow us and say hi in a comment or DM.
+Optional: Share feedback on Google — totally up to you.
+Show the screen at the counter to redeem your perk."></textarea>
+              </div>
             </div>
+
             <div class="row">
               <div>
                 <label>Instagram target URL</label>
@@ -83,13 +90,16 @@
                 <input type="url" name="tiktokUrl" placeholder="https://www.tiktok.com/..." />
               </div>
             </div>
+
             <div class="row">
               <div>
                 <label>YouTube target URL</label>
                 <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..."/>
               </div>
-              <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
-                <button type="submit">Create</button>
+              <div style="display:flex; align-items:flex-end; justify-content:flex-end; gap:8px;">
+                <label>Show Logo</label>
+                <input type="checkbox" name="showLogo" checked />
+                <button type="submit" style="margin-left:auto;">Create</button>
               </div>
             </div>
           </form>
@@ -99,19 +109,18 @@
           <h2>How it works</h2>
           <ol class="small">
             <li>Set <code>BASE_URL</code> in <code>.env</code> to your LAN IP or tunnel URL.</li>
-            <li>Create a business with links & theme.</li>
+            <li>Create a business with links & theme color.</li>
             <li>QRs encode stable URLs like <code>/r/&lt;slug&gt;/instagram</code> (dynamic image at <code>/qr/&lt;slug&gt;/instagram.png</code>).</li>
-            <li>Print the public page: <code>/p/&lt;slug&gt;</code>.</li>
+            <li>Print the poster page: <code>/p/&lt;slug&gt;</code> (or <code>?print=1</code> / <code>?kiosk=1</code>).</li>
             <li>Update weekly post links anytime; QRs stay the same.</li>
           </ol>
-          <div class="banner small">Pro tip: Use a stable domain for printed codes.</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:16px">
         <h2>Businesses</h2>
         <table>
-          <thead><tr><th>Name</th><th>Slug</th><th>Public Page</th><th>Admin</th></tr></thead>
+          <thead><tr><th>Name</th><th>Slug</th><th>Poster</th><th>Admin</th></tr></thead>
           <tbody>
             <% if (businesses.length === 0) { %>
               <tr><td colspan="4" class="small">No businesses yet. Create one above.</td></tr>

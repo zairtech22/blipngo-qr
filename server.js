@@ -2,7 +2,6 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
-const fs = require('fs');
 const QRCode = require('qrcode');
 require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
@@ -11,8 +10,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const app = express();
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-
-// expose BASE_URL to all views
 app.locals.BASE_URL = BASE_URL;
 
 // --- middleware & view engine ---
@@ -24,7 +21,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // ---------- ROUTES ----------
 
-// Home
+// Home (list businesses)
 app.get('/', async (req, res) => {
   const businesses = await prisma.business.findMany({ orderBy: { createdAt: 'desc' } });
   res.render('index', { businesses, BASE_URL });
@@ -34,9 +31,11 @@ app.get('/', async (req, res) => {
 app.post('/business', async (req, res) => {
   try {
     const { name, slug: customSlug, logoUrl,
-            themeHex, themeBgHex, themeBgHex2,
-            publicTitle, publicSubtitle, publicFooter, ctaLabel,
-            instagramUrl, tiktokUrl, youtubeUrl, showLogo, qrLayout } = req.body;
+            brandColor,
+            publicTitle, publicSubtitle, publicFooter,
+            ctaLabel, ctaText,
+            instagramUrl, tiktokUrl, youtubeUrl,
+            showLogo, qrLayout, steps } = req.body;
 
     const slug = (customSlug && customSlug.trim().length)
       ? customSlug.trim().toLowerCase()
@@ -45,13 +44,21 @@ app.post('/business', async (req, res) => {
     const biz = await prisma.business.create({
       data: {
         name, slug, logoUrl,
-        themeHex, themeBgHex, themeBgHex2,
-        publicTitle, publicSubtitle, publicFooter, ctaLabel,
+        brandColor: brandColor || null,
+        publicTitle, publicSubtitle, publicFooter, ctaLabel, ctaText,
         instagramUrl, tiktokUrl, youtubeUrl,
         showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical')
       }
     });
+
+    // Initial steps (textarea, one per line)
+    if (steps && steps.trim().length) {
+      const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
+      for (let i = 0; i < lines.length; i++) {
+        await prisma.step.create({ data: { businessId: biz.id, order: i + 1, text: lines[i] } });
+      }
+    }
 
     res.redirect(`/business/${biz.slug}`);
   } catch (e) {
@@ -62,12 +69,15 @@ app.post('/business', async (req, res) => {
 
 // Admin page
 app.get('/business/:slug', async (req, res) => {
-  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  const biz = await prisma.business.findUnique({
+    where: { slug: req.params.slug },
+    include: { steps: true }
+  });
   if (!biz) return res.status(404).send('Not found');
   res.render('business', { biz, BASE_URL });
 });
 
-// Update platform URL (weekly links) - single input per platform
+// Update platform URL
 app.post('/business/:slug/update', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
@@ -89,27 +99,38 @@ app.post('/business/:slug/update', async (req, res) => {
   res.redirect(`/business/${biz.slug}`);
 });
 
-// Save theme / public copy (+ qrLayout)
+// Save theme / CTA / steps
 app.post('/business/:slug/theme', async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
 
-    const { themeHex, themeBgHex, themeBgHex2, publicTitle, publicSubtitle, publicFooter, ctaLabel, showLogo, qrLayout } = req.body;
+    const { brandColor, publicTitle, publicSubtitle, publicFooter,
+            ctaLabel, ctaText, showLogo, qrLayout, steps } = req.body;
+
     await prisma.business.update({
       where: { id: biz.id },
       data: {
-        themeHex: themeHex || null,
-        themeBgHex: themeBgHex || null,
-        themeBgHex2: themeBgHex2 || null,
+        brandColor: brandColor || null,
         publicTitle: publicTitle || null,
         publicSubtitle: publicSubtitle || null,
         publicFooter: publicFooter || null,
         ctaLabel: ctaLabel || null,
+        ctaText: ctaText || null,
         showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical')
       }
     });
+
+    // Replace steps with new list
+    await prisma.step.deleteMany({ where: { businessId: biz.id } });
+    if (steps && steps.trim().length) {
+      const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
+      for (let i = 0; i < lines.length; i++) {
+        await prisma.step.create({ data: { businessId: biz.id, order: i + 1, text: lines[i] } });
+      }
+    }
+
     res.redirect(`/business/${biz.slug}`);
   } catch (e) {
     console.error(e);
@@ -117,22 +138,7 @@ app.post('/business/:slug/theme', async (req, res) => {
   }
 });
 
-// No-op: kept for UI parity
-app.post('/business/:slug/regen', async (req, res) => {
-  try {
-    const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
-    if (!biz) return res.status(404).send('Not found');
-    // Dynamic QR: nothing to regenerate.
-    res.redirect(`/business/${biz.slug}`);
-  } catch (e) { console.error(e); res.status(500).send('Failed: ' + (e?.message || e)); }
-});
-
-// No-op: regen all
-app.post('/admin/regen-all', async (req, res) => {
-  try { res.redirect('/'); } catch (e) { console.error(e); res.status(500).send('Failed: ' + (e?.message || e)); }
-});
-
-// Toggle platform on/off (keep QR static)
+// Toggle platform (QR static)
 app.post('/business/:slug/toggle', async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
@@ -160,7 +166,10 @@ app.post('/business/:slug/toggle', async (req, res) => {
     }
 
     res.redirect(`/business/${biz.slug}`);
-  } catch (e) { console.error(e); res.status(500).send('Toggle failed: ' + (e?.message || e)); }
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Toggle failed: ' + (e?.message || e));
+  }
 });
 
 // Delete business
@@ -171,15 +180,22 @@ app.post('/business/:slug/delete', async (req, res) => {
 
     await prisma.redirectHistory.deleteMany({ where: { businessId: biz.id } });
     await prisma.scanEvent.deleteMany({ where: { businessId: biz.id } });
+    await prisma.step.deleteMany({ where: { businessId: biz.id } });
     await prisma.business.delete({ where: { id: biz.id } });
 
     res.redirect('/');
-  } catch (e) { console.error(e); res.status(500).send('Delete failed: ' + (e?.message || e)); }
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Delete failed: ' + (e?.message || e));
+  }
 });
 
-// Public printable / display page
+// Public poster page
 app.get('/p/:slug', async (req, res) => {
-  const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
+  const biz = await prisma.business.findUnique({
+    where: { slug: req.params.slug },
+    include: { steps: true }
+  });
   if (!biz) return res.status(404).send('Not found');
 
   const kiosk = req.query.kiosk === '1';
@@ -187,7 +203,7 @@ app.get('/p/:slug', async (req, res) => {
   res.render('publicpage', { biz, kiosk, printMode, BASE_URL });
 });
 
-// Redirect (scans)
+// Redirect: QR target
 app.get('/r/:slug/:platform', async (req, res) => {
   const plat = (req.params.platform || '').toLowerCase();
   const valid = ['instagram','tiktok','youtube'];
@@ -208,7 +224,7 @@ app.get('/r/:slug/:platform', async (req, res) => {
     data: { businessId: biz.id, platform: plat.toUpperCase(), userAgent: ua, ipHash, referer }
   });
 
-  return res.redirect(target);
+  res.redirect(target);
 });
 
 // Analytics JSON
@@ -216,12 +232,14 @@ app.get('/business/:slug/analytics.json', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).json({ error: 'Not found' });
   const rows = await prisma.scanEvent.groupBy({
-    by: ['platform'], _count: { _all: true }, where: { businessId: biz.id }
+    by: ['platform'],
+    _count: { _all: true },
+    where: { businessId: biz.id }
   });
   res.json({ business: biz.slug, counts: rows.map(r => ({ platform: r.platform, count: r._count._all })) });
 });
 
-// Dynamic QR image (no files, stable forever)
+// Dynamic QR images (stable)
 const QR_OPTS = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
 app.get('/qr/:slug/:platform.png', async (req, res) => {
   const { slug, platform } = req.params;
@@ -235,10 +253,10 @@ app.get('/qr/:slug/:platform.png', async (req, res) => {
     const buf = await QRCode.toBuffer(urlToEncode, QR_OPTS);
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    return res.send(buf);
+    res.send(buf);
   } catch (e) {
     console.error(e);
-    return res.status(500).send('QR error');
+    res.status(500).send('QR error');
   }
 });
 
