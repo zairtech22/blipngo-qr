@@ -19,7 +19,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// ---------- ROUTES ----------
+// ---------------- ROUTES ----------------
 
 // Home (list businesses)
 app.get('/', async (req, res) => {
@@ -30,12 +30,16 @@ app.get('/', async (req, res) => {
 // Create business
 app.post('/business', async (req, res) => {
   try {
-    const { name, slug: customSlug, logoUrl,
-            brandColor,
-            publicTitle, publicSubtitle, publicFooter,
-            ctaLabel, ctaText,
-            instagramUrl, tiktokUrl, youtubeUrl,
-            showLogo, qrLayout, steps } = req.body;
+    const {
+      name,
+      slug: customSlug,
+      logoUrl,
+      brandColor,
+      publicTitle, publicSubtitle, publicFooter,
+      ctaLabel, ctaText,
+      instagramUrl, tiktokUrl, youtubeUrl,
+      showLogo, qrLayout, steps
+    } = req.body;
 
     const slug = (customSlug && customSlug.trim().length)
       ? customSlug.trim().toLowerCase()
@@ -56,7 +60,9 @@ app.post('/business', async (req, res) => {
     if (steps && steps.trim().length) {
       const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
       for (let i = 0; i < lines.length; i++) {
-        await prisma.step.create({ data: { businessId: biz.id, order: i + 1, text: lines[i] } });
+        await prisma.step.create({
+          data: { businessId: biz.id, order: i + 1, text: lines[i] }
+        });
       }
     }
 
@@ -67,7 +73,7 @@ app.post('/business', async (req, res) => {
   }
 });
 
-// Admin page
+// Admin: manage business page
 app.get('/business/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
@@ -77,7 +83,7 @@ app.get('/business/:slug', async (req, res) => {
   res.render('business', { biz, BASE_URL });
 });
 
-// Update platform URL
+// Update any single platform URL (and log redirect history)
 app.post('/business/:slug/update', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
@@ -105,8 +111,11 @@ app.post('/business/:slug/theme', async (req, res) => {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
     if (!biz) return res.status(404).send('Not found');
 
-    const { brandColor, publicTitle, publicSubtitle, publicFooter,
-            ctaLabel, ctaText, showLogo, qrLayout, steps } = req.body;
+    const {
+      brandColor, publicTitle, publicSubtitle, publicFooter,
+      ctaLabel, ctaText, showLogo, qrLayout, steps,
+      logoUrl, instagramUrl, tiktokUrl, youtubeUrl
+    } = req.body;
 
     await prisma.business.update({
       where: { id: biz.id },
@@ -118,7 +127,11 @@ app.post('/business/:slug/theme', async (req, res) => {
         ctaLabel: ctaLabel || null,
         ctaText: ctaText || null,
         showLogo: !!showLogo,
-        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical')
+        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
+        logoUrl: logoUrl || null,
+        instagramUrl: instagramUrl || null,
+        tiktokUrl: tiktokUrl || null,
+        youtubeUrl: youtubeUrl || null
       }
     });
 
@@ -138,7 +151,7 @@ app.post('/business/:slug/theme', async (req, res) => {
   }
 });
 
-// Toggle platform (QR static)
+// Toggle platform enable/disable (kept for compatibility)
 app.post('/business/:slug/toggle', async (req, res) => {
   try {
     const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
@@ -190,24 +203,36 @@ app.post('/business/:slug/delete', async (req, res) => {
   }
 });
 
-// Public poster page
+// ---------- POSTER VIEWS (single EJS with isPublic flag) ----------
+
+// Admin preview (toolbar, A4/Letter toggle)
+app.get('/poster/:slug', async (req, res) => {
+  const biz = await prisma.business.findUnique({
+    where: { slug: req.params.slug },
+    include: { steps: true }
+  });
+  if (!biz) return res.status(404).send('Not found');
+  res.render('poster', { biz, isPublic: false });
+});
+
+// Public flyer (no toolbar, defaults to A4)
 app.get('/p/:slug', async (req, res) => {
   const biz = await prisma.business.findUnique({
     where: { slug: req.params.slug },
     include: { steps: true }
   });
   if (!biz) return res.status(404).send('Not found');
-
-  const kiosk = req.query.kiosk === '1';
-  const printMode = req.query.print === '1';
-  res.render('publicpage', { biz, kiosk, printMode, BASE_URL });
+  res.render('poster', { biz, isPublic: true });
 });
 
-// Redirect: QR target
+// ---------- Redirect + Analytics + QR ----------
+
+// Redirect: QR target (and log scan)
 app.get('/r/:slug/:platform', async (req, res) => {
   const plat = (req.params.platform || '').toLowerCase();
   const valid = ['instagram','tiktok','youtube'];
   if (!valid.includes(plat)) return res.status(400).send('Invalid platform');
+
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).send('Not found');
 
@@ -227,7 +252,7 @@ app.get('/r/:slug/:platform', async (req, res) => {
   res.redirect(target);
 });
 
-// Analytics JSON
+// Analytics JSON (counts per platform)
 app.get('/business/:slug/analytics.json', async (req, res) => {
   const biz = await prisma.business.findUnique({ where: { slug: req.params.slug } });
   if (!biz) return res.status(404).json({ error: 'Not found' });
@@ -239,12 +264,13 @@ app.get('/business/:slug/analytics.json', async (req, res) => {
   res.json({ business: biz.slug, counts: rows.map(r => ({ platform: r.platform, count: r._count._all })) });
 });
 
-// Dynamic QR images (stable)
+// Dynamic QR images (stable, cached)
 const QR_OPTS = { errorCorrectionLevel: 'M', margin: 2, width: 800 };
 app.get('/qr/:slug/:platform.png', async (req, res) => {
   const { slug, platform } = req.params;
   const valid = ['instagram', 'tiktok', 'youtube'];
   if (!valid.includes(platform)) return res.status(400).send('Invalid platform');
+
   const biz = await prisma.business.findUnique({ where: { slug } });
   if (!biz) return res.status(404).send('Not found');
 
