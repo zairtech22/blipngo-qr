@@ -112,26 +112,53 @@ app.post('/business/:slug/theme', async (req, res) => {
     if (!biz) return res.status(404).send('Not found');
 
     const {
+      // NEW
+      name,
+      ctaLabel, // stores alignment: 'left' | 'center' | 'right'
+
+      // existing
       brandColor, publicTitle, publicSubtitle, publicFooter,
-      ctaLabel, ctaText, showLogo, qrLayout, steps,
-      logoUrl, instagramUrl, tiktokUrl, youtubeUrl
+      ctaText, showLogo, qrLayout,
+      logoUrl, instagramUrl, tiktokUrl, youtubeUrl,
+
+      // NEW checkboxes
+      enableTiktok, enableInstagram, enableYoutube,
+
+      // steps textarea
+      steps
     } = req.body;
+
+    // Normalize alignment (fallback to 'left')
+    const align = (['left','center','right'].includes((ctaLabel||'').toLowerCase()))
+      ? ctaLabel.toLowerCase()
+      : 'left';
+
+    // Enable/disable URLs based on checkboxes
+    const tiktokFinal    = enableTiktok    ? (tiktokUrl    || null) : null;
+    const instagramFinal = enableInstagram ? (instagramUrl || null) : null;
+    const youtubeFinal   = enableYoutube   ? (youtubeUrl   || null) : null;
 
     await prisma.business.update({
       where: { id: biz.id },
       data: {
+        // NEW
+        name: (name && name.trim()) ? name.trim() : biz.name,
+        ctaLabel: align,
+
+        // existing
         brandColor: brandColor || null,
         publicTitle: publicTitle || null,
         publicSubtitle: publicSubtitle || null,
         publicFooter: publicFooter || null,
-        ctaLabel: ctaLabel || null,
         ctaText: ctaText || null,
         showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
         logoUrl: logoUrl || null,
-        instagramUrl: instagramUrl || null,
-        tiktokUrl: tiktokUrl || null,
-        youtubeUrl: youtubeUrl || null
+
+        // socials with enable/disable
+        instagramUrl: instagramFinal,
+        tiktokUrl: tiktokFinal,
+        youtubeUrl: youtubeFinal,
       }
     });
 
@@ -140,7 +167,9 @@ app.post('/business/:slug/theme', async (req, res) => {
     if (steps && steps.trim().length) {
       const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
       for (let i = 0; i < lines.length; i++) {
-        await prisma.step.create({ data: { businessId: biz.id, order: i + 1, text: lines[i] } });
+        await prisma.step.create({
+          data: { businessId: biz.id, order: i + 1, text: lines[i] }
+        });
       }
     }
 
@@ -150,6 +179,7 @@ app.post('/business/:slug/theme', async (req, res) => {
     res.status(500).send('Theme save failed: ' + (e?.message || e));
   }
 });
+
 
 // Toggle platform enable/disable (kept for compatibility)
 app.post('/business/:slug/toggle', async (req, res) => {
