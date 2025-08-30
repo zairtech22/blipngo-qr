@@ -27,36 +27,36 @@
       background:var(--bg);
       border:6px solid var(--ink); border-radius:28px; box-sizing:border-box;
       box-shadow:0 10px 24px rgba(0,0,0,.15);
-      padding:32px 28px;
+      padding:28px 24px;
     }
 
-    .header{text-align:center; margin-bottom:14px}
+    .header{text-align:center; margin-bottom:10px}
     .logo{
-      width:120px; height:120px; margin:0 auto 10px;
+      width:112px; height:112px; margin:0 auto 8px;
       background:var(--paper); border:4px solid var(--ink); border-radius:20px;
       display:grid; place-items:center; overflow:hidden;
     }
     .logo img{width:100%; height:100%; object-fit:contain}
-    .bizname{margin:0; text-transform:uppercase; font-weight:900; font-size:clamp(20px,4.6vw,20px)}
-    .cta{margin:10px 0 14px; text-transform:uppercase; font-weight:900; font-size:clamp(28px,3.4vw,44px); text-align:center}
+    .bizname{margin:0; text-transform:uppercase; font-weight:900; font-size:clamp(26px,4.4vw,40px)}
+    .cta{margin:8px 0 12px; text-transform:uppercase; font-weight:900; font-size:clamp(20px,3.2vw,28px); text-align:center}
 
     .steps{
-      list-style:none; padding:0; margin:0 auto 18px; max-width:640px;
-      font-size:clamp(15px,2.4vw,18px); font-weight:700; display:grid; gap:8px;
+      list-style:none; padding:0; margin:0 auto 16px; max-width:640px;
+      font-size:clamp(15px,2.3vw,18px); font-weight:700; display:grid; gap:8px;
     }
-    .steps li{display:grid; grid-template-columns:30px 1fr; align-items:center; gap:10px}
+    .steps li{display:grid; grid-template-columns:28px 1fr; align-items:center; gap:8px}
     .steps .num{
-      width:30px; height:30px; border:3px solid var(--ink); background:var(--paper);
+      width:28px; height:28px; border:3px solid var(--ink); background:var(--paper);
       border-radius:10px; display:grid; place-items:center; font-weight:900;
     }
 
     /* ---------- QR GRID (SCREEN) ----------
-       We use a CSS var for card width and QR height, set by the count class. */
+       CSS vars are set by the count class (qr-1/2/3). */
     .qr-grid{
-      --card-w: 240px;     /* default for 3 cards */
+      --card-w: 240px;     /* default for 3 */
       --qr-h:  220px;
       display:flex; flex-wrap:wrap; justify-content:center;
-      gap:22px; margin-top:8px;
+      gap:22px; row-gap:22px; margin-top:8px;
     }
     .qr-grid.qr-1{ --card-w: 360px; --qr-h:  320px; }
     .qr-grid.qr-2{ --card-w: 300px; --qr-h:  270px; }
@@ -65,7 +65,7 @@
     .qr-card{
       background:var(--paper); border:4px solid var(--ink); border-radius:18px;
       padding:14px; width:var(--card-w); box-sizing:border-box; overflow:hidden;
-      display:grid; gap:10px;
+      display:grid; gap:10px; break-inside:avoid-page; page-break-inside:avoid;
     }
     .qr-head{display:flex; align-items:center; justify-content:center; gap:8px; font-weight:900}
     .qr-ico{
@@ -85,52 +85,53 @@
       max-width:94%; max-height:94%;
     }
 
-    .fineprint{margin-top:14px; text-align:center; font-size:12px; color:var(--muted); font-weight:600}
+    .fineprint{margin-top:12px; text-align:center; font-size:12px; color:var(--muted); font-weight:600}
 
-    /* ---------- PRINT (A4/Letter) ----------
-       Fixed dimensions with safe margins; hard caps per QR count. */
+    /* ---------- PRINT (A4 & Letter) ---------- */
     @media print{
       @page{ margin: 0; }
       html,body{height:auto}
-      body{ background:#fff !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-
+      body{
+        background:#fff !important; color:#000 !important;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      }
+      .page{ padding:0 !important; }
       .poster{
-        width:186mm; height:273mm;      /* fits A4 and Letter with margins */
-        margin:12mm auto;
-        padding:8mm;
-        border-width:3px; box-sizing:border-box;
+        width:184mm;                 /* safe width for A4 & Letter */
+        margin:10mm auto;            /* outer border */
+        padding:7mm;                 /* inner padding */
+        border-width:3px;
+        box-sizing:border-box;
+        break-inside:avoid-page; page-break-inside:avoid; page-break-after:avoid;
       }
 
-      .logo{ width:30mm; height:30mm; border-width:2px; border-radius:6mm; margin-bottom:4mm }
-      .bizname{ font-size:24pt; margin:0 0 2mm }
-      .cta{ font-size:16.5pt; margin:2mm 0 4mm }
-      .steps{ font-size:11.2pt; gap:3mm; margin:0 0 6mm }
-      .steps .num{ width:18px; height:18px; border-width:2px; font-size:10pt }
+      /* tighter header/steps so we always fit */
+      .logo{ width:28mm; height:28mm; border-width:2px; border-radius:6mm; margin-bottom:4mm }
+      .bizname{ font-size:22pt; margin:0 0 1.5mm }
+      .cta{ font-size:16pt; margin:1.5mm 0 3mm }
+      .steps{ font-size:11pt; gap:2.6mm; margin:0 0 6mm }
+      .steps .num{ width:17px; height:17px; border-width:2px; font-size:10pt }
 
+      /* count-aware caps for one-page fit */
       .qr-grid{
-        gap:8mm; row-gap:8mm; justify-content:center; align-items:flex-start; flex-wrap:wrap;
+        gap:7mm; row-gap:7mm; justify-content:center; flex-wrap:wrap;
       }
-      /* per-count caps */
-      .qr-grid.qr-1{ --card-w: 70mm; --qr-h: 54mm; }
-      .qr-grid.qr-2{ --card-w: 60mm; --qr-h: 48mm; }
-      .qr-grid.qr-3{ --card-w: 54mm; --qr-h: 42mm; }
+      .qr-grid.qr-1{ --card-w: 82mm; --qr-h: 66mm; }
+      .qr-grid.qr-2{ --card-w: 66mm; --qr-h: 52mm; }
+      .qr-grid.qr-3{ --card-w: 52mm; --qr-h: 40mm; }
 
-      .qr-card{
-        width:var(--card-w); padding:4.5mm; border-width:2px; border-radius:5mm;
-      }
-      .qr-head{ font-size:11pt }
-      .qr-ico{ width:9mm; height:9mm; font-size:9pt; border-width:1.6px; border-radius:2.5mm }
-      .qr-title{ font-size:10.5pt }
+      .qr-card{ width:var(--card-w); padding:4mm; border-width:2px; border-radius:5mm; }
+      .qr-head{ font-size:10.5pt }
+      .qr-ico{ width:8.5mm; height:8.5mm; font-size:9pt; border-width:1.6px; border-radius:2.5mm }
+      .qr-title{ font-size:10pt }
 
-      .qr-img{
-        height:var(--qr-h); border-width:2px; border-radius:3mm;
-      }
+      .qr-img{ height:var(--qr-h); border-width:2px; border-radius:3mm; }
       .qr-img img{
         max-width:92% !important; max-height:92% !important;
         width:auto; height:auto; object-fit:contain !important;
       }
 
-      .fineprint{ font-size:9.5pt; margin-top:6mm }
+      .fineprint{ font-size:9.5pt; margin-top:5mm }
     }
   </style>
 </head>
@@ -163,7 +164,7 @@
         <% } %>
       </ol>
 
-      <% /* Build the enabled platforms and count */ %>
+      <% /* enabled platforms & count */ %>
       <%
         const cards = [];
         if (biz.tiktokUrl) cards.push('tiktok');
