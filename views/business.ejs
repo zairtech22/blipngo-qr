@@ -63,10 +63,8 @@
   <main>
     <section>
       <form id="themeForm" method="post" action="/business/<%= biz.slug %>/theme">
-        <!-- Hidden field we repurpose to store pattern config string -->
         <input type="hidden" id="publicSubtitle" name="publicSubtitle" value="<%= biz.publicSubtitle || '' %>"/>
-
-        <!-- 1) Brand -->
+        
         <div class="card">
           <h3>1) Brand</h3>
           <div class="row">
@@ -74,6 +72,11 @@
               <label>Business Name</label>
               <input name="name" type="text" value="<%= biz.name %>" />
               <div class="hint">Shown as the big heading.</div>
+            </div>
+            <div>
+              <label>Tagline</label>
+              <input name="tagline" type="text" value="<%= biz.tagline || 'From the streets of NYC' %>" />
+              <div class="hint">A small phrase below the name.</div>
             </div>
           </div>
           <div class="row">
@@ -86,19 +89,34 @@
               </div>
             </div>
             <div>
-              <label>Brand Color (hex)</label>
+              <label>Logo Background Color</label>
+              <input name="logoBgColor" type="color" value="<%= biz.logoBgColor || '#0A0A0A' %>" />
+              <div class="hint">Ensures logo is visible on any background.</div>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Poster Background Color (hex)</label>
               <input name="brandColor" type="text" value="<%= biz.brandColor || '#FFD21E' %>" />
               <div class="brand-swatch" style="--brand:<%= biz.brandColor || '#FFD21E' %>"></div>
-              <div class="hint">Poster background uses this color.</div>
+              <div class="hint">Main color for poster and QR cards.</div>
             </div>
           </div>
         </div>
 
-        <!-- 2) Headline / Alignment -->
         <div class="card">
           <h3>2) Headline & Alignment</h3>
-          <label>Headline (CTA)</label>
-          <input name="ctaText" type="text" value="<%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %>" />
+          <div class="row">
+            <div>
+              <label>Headline (CTA) Text</label>
+              <input name="ctaText" type="text" value="<%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %>" />
+            </div>
+            <div>
+              <label>Headline (CTA) Color</label>
+              <input name="ctaColor" type="color" value="<%= biz.ctaColor || '#EDC400' %>" />
+              <div class="hint">Background is black by default.</div>
+            </div>
+          </div>
           <label style="margin-top:10px">Instructions alignment</label>
           <select name="ctaLabel">
             <option value="left"   <%= (biz.ctaLabel||'left')==='left'   ? 'selected' : '' %>>Left</option>
@@ -107,14 +125,12 @@
           </select>
         </div>
 
-        <!-- 3) Steps -->
         <div class="card">
           <h3>3) Steps (1 per line)</h3>
           <textarea name="steps" rows="6"><%= (biz.steps||[]).sort((a,b)=>a.order-b.order).map(s=>s.text).join('\n') %></textarea>
           <div class="hint">Leave blank to use defaults.</div>
         </div>
 
-        <!-- 4) Social / QR -->
         <div class="card">
           <h3>4) Social QR Boxes</h3>
           <div class="row">
@@ -142,77 +158,8 @@
           </div>
         </div>
 
-        <!-- 5) Background Pattern (stored in publicSubtitle) -->
-        <%
-          const cfgRaw = (biz.publicSubtitle || '').trim();
-          const cfg = {};
-          if (cfgRaw) {
-            cfgRaw.split(';').forEach(pair => {
-              const [k,v] = pair.split('=').map(s => (s||'').trim());
-              if (k && v !== undefined) cfg[k] = v;
-            });
-          }
-          const pat = (cfg.pattern || 'fries').toLowerCase();
-          const size = cfg.size || '120px';
-          const alpha = cfg.alpha || '0.12';
-          const rotate = cfg.rotate || '0deg';
-          const colorPref = (cfg.color || 'brand').toLowerCase();
-          const colorHex = (/^#?[0-9a-f]{6}$/i.test(colorPref) ? (colorPref.startsWith('#') ? colorPref : ('#'+colorPref)) : '');
-        %>
         <div class="card">
-          <h3>5) Background Pattern</h3>
-          <div class="row">
-            <div>
-              <label>Pattern</label>
-              <select id="patPattern">
-                <option value="fries" <%= pat==='fries' ? 'selected' : '' %>>Fries 🍟</option>
-                <option value="soda"  <%= pat==='soda'  ? 'selected' : '' %>>Soda 🥤</option>
-                <option value="books" <%= pat==='books' ? 'selected' : '' %>>Books + Coffee 📚☕</option>
-              </select>
-              <div class="hint">Outline icons tiled across background.</div>
-            </div>
-            <div>
-              <label>Tile Size</label>
-              <input id="patSize" type="text" value="<%= size %>" />
-              <div class="hint">e.g. 120px</div>
-            </div>
-          </div>
-          <div class="row">
-            <div>
-              <label>Opacity</label>
-              <input id="patAlpha" type="number" step="0.01" min="0" max="1" value="<%= parseFloat(alpha) %>"/>
-              <div class="hint">0.10–0.20 looks nice; print auto-reduces slightly.</div>
-            </div>
-            <div>
-              <label>Rotate</label>
-              <input id="patRotate" type="text" value="<%= rotate %>" />
-              <div class="hint">e.g. 0deg, 8deg, -5deg</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label>Icon Color</label>
-              <select id="patColorMode">
-                <option value="brand" <%= colorPref==='brand' ? 'selected' : '' %>>Use Brand (auto-darkened)</option>
-                <option value="ink"   <%= colorPref==='ink'   ? 'selected' : '' %>>Use Ink (#0A0A0A)</option>
-                <option value="custom" <%= colorHex ? 'selected' : '' %>>Custom Hex…</option>
-              </select>
-              <div class="hint">Choose how icon outlines are colored.</div>
-            </div>
-            <div>
-              <label>Custom Hex (if chosen)</label>
-              <input id="patColorHex" type="text" placeholder="#1e293b" value="<%= colorHex %>"/>
-              <div class="hint">Format: #RRGGBB</div>
-            </div>
-          </div>
-
-          <div class="hint">Saved into <code>publicSubtitle</code> as: <code>pattern=…; size=…; alpha=…; rotate=…; color=…</code></div>
-        </div>
-
-        <!-- 6) Footer -->
-        <div class="card">
-          <h3>6) Footer (small print)</h3>
+          <h3>5) Footer (small print)</h3>
           <input name="publicFooter" type="text" value="<%= biz.publicFooter || 'Perks tied to follows/check-ins. Feedback appreciated, never required.' %>" />
         </div>
 
@@ -224,7 +171,6 @@
       </form>
     </section>
 
-    <!-- Right: Live Preview -->
     <aside class="preview">
       <div class="preview-head">
         <div><strong>Live Preview</strong></div>
@@ -240,26 +186,8 @@
   </main>
 
   <script>
-    // Build publicSubtitle config string before submit
-    const form = document.getElementById('themeForm');
-    form.addEventListener('submit', () => {
-      let colorVal = document.getElementById('patColorMode').value;
-      if (colorVal === 'custom') {
-        const hx = (document.getElementById('patColorHex').value || '').trim();
-        if (/^#?[0-9a-f]{6}$/i.test(hx)) colorVal = hx.startsWith('#') ? hx : ('#'+hx);
-        else colorVal = 'brand'; // fallback
-      }
-      const cfg = [
-        'pattern=' + document.getElementById('patPattern').value,
-        'size='    + (document.getElementById('patSize').value || '120px'),
-        'alpha='   + (document.getElementById('patAlpha').value || '0.12'),
-        'rotate='  + (document.getElementById('patRotate').value || '0deg'),
-        'color='   + colorVal
-      ].join('; ');
-      document.getElementById('publicSubtitle').value = cfg;
-    });
-
     // Preview controls
+    const form = document.getElementById('themeForm');
     const frame = document.getElementById('posterFrame');
     const a4Btn = document.getElementById('a4Btn');
     const ltrBtn = document.getElementById('letterBtn');
@@ -272,16 +200,6 @@
     refreshBtn.addEventListener('click', e=>{e.preventDefault(); frame.src = '/poster/<%= biz.slug %>?ts=' + Date.now(); });
     printBtn.addEventListener('click', e=>{e.preventDefault(); sendToPoster({type:'print'})});
     function sendToPoster(msg){ frame.contentWindow?.postMessage(msg, window.location.origin); }
-
-    // Optional: disable/enable custom hex input visibility
-    const modeSel = document.getElementById('patColorMode');
-    const hexInput = document.getElementById('patColorHex');
-    function toggleHex(){
-      hexInput.disabled = modeSel.value !== 'custom';
-      hexInput.style.opacity = modeSel.value === 'custom' ? '1' : '0.5';
-    }
-    modeSel.addEventListener('change', toggleHex);
-    toggleHex();
 
     // Auto-refresh preview shortly after save
     form.addEventListener('submit', ()=> setTimeout(()=>{ frame.src = '/poster/<%= biz.slug %>?ts=' + Date.now(); }, 400));
