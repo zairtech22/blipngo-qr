@@ -14,6 +14,7 @@
       /* NEW: Variables for colors from the control panel */
       --logo-bg: <%= biz.logoBgColor ? biz.logoBgColor : '#0A0A0A' %>;
       --cta-color: <%= biz.ctaColor ? biz.ctaColor : '#EDC400' %>;
+      --cta-bg-color: <%= biz.ctaBgColor ? biz.ctaBgColor : '#0A0A0A' %>; /* Add this line */
     }
     
     /* ---------- BASE / SCREEN ---------- */
@@ -81,7 +82,7 @@
     .cta {
       margin: 10px auto 20px;
       padding: 12px 20px;
-      background: var(--ink);
+      background: var(--cta-bg-color); 
       color: var(--cta-color);
       border-radius: 12px;
       font-weight: 900;

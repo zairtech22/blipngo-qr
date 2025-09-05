@@ -17,7 +17,9 @@ model Business {
   logoUrl        String?
 
   brandColor     String?   // Single poster background color
-
+  logoBgColor    String?   // New field for the logo background color
+  ctaColor       String?   // New field for the call-to-action button color
+  ctaBgColor     String?
   publicTitle    String?
   publicSubtitle String?
   publicFooter   String?

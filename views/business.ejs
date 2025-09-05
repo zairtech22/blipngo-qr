@@ -117,6 +117,13 @@
               <div class="hint">Background is black by default.</div>
             </div>
           </div>
+          <div class="row">
+            <div>
+              <label>Headline (CTA) Background Color</label>
+              <input name="ctaBgColor" type="color" value="<%= biz.ctaBgColor || '#0A0A0A' %>" />
+              <div class="hint">This is the background color for the headline.</div>
+            </div>
+          </div>
           <label style="margin-top:10px">Instructions alignment</label>
           <select name="ctaLabel">
             <option value="left"   <%= (biz.ctaLabel||'left')==='left'   ? 'selected' : '' %>>Left</option>

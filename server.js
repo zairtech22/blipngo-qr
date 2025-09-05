@@ -38,7 +38,8 @@ app.post('/business', async (req, res) => {
       publicTitle, publicSubtitle, publicFooter,
       ctaLabel, ctaText,
       instagramUrl, tiktokUrl, youtubeUrl,
-      showLogo, qrLayout, steps
+      showLogo, qrLayout, steps,
+      ctaBgColor // <--- Added this field for initial creation
     } = req.body;
 
     const slug = (customSlug && customSlug.trim().length)
@@ -52,7 +53,8 @@ app.post('/business', async (req, res) => {
         publicTitle, publicSubtitle, publicFooter, ctaLabel, ctaText,
         instagramUrl, tiktokUrl, youtubeUrl,
         showLogo: !!showLogo,
-        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical')
+        qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
+        ctaBgColor: ctaBgColor || null // <--- Added here
       }
     });
 
@@ -112,28 +114,22 @@ app.post('/business/:slug/theme', async (req, res) => {
     if (!biz) return res.status(404).send('Not found');
 
     const {
-      // NEW
       name,
-      ctaLabel, // stores alignment: 'left' | 'center' | 'right'
-
-      // existing
+      ctaLabel,
+      logoBgColor,
+      ctaColor,
+      ctaBgColor, // <--- Added here
       brandColor, publicTitle, publicSubtitle, publicFooter,
       ctaText, showLogo, qrLayout,
       logoUrl, instagramUrl, tiktokUrl, youtubeUrl,
-
-      // NEW checkboxes
       enableTiktok, enableInstagram, enableYoutube,
-
-      // steps textarea
       steps
     } = req.body;
 
-    // Normalize alignment (fallback to 'left')
     const align = (['left','center','right'].includes((ctaLabel||'').toLowerCase()))
       ? ctaLabel.toLowerCase()
       : 'left';
 
-    // Enable/disable URLs based on checkboxes
     const tiktokFinal    = enableTiktok    ? (tiktokUrl    || null) : null;
     const instagramFinal = enableInstagram ? (instagramUrl || null) : null;
     const youtubeFinal   = enableYoutube   ? (youtubeUrl   || null) : null;
@@ -141,11 +137,11 @@ app.post('/business/:slug/theme', async (req, res) => {
     await prisma.business.update({
       where: { id: biz.id },
       data: {
-        // NEW
         name: (name && name.trim()) ? name.trim() : biz.name,
         ctaLabel: align,
-
-        // existing
+        logoBgColor: logoBgColor || null,
+        ctaColor: ctaColor || null,
+        ctaBgColor: ctaBgColor || null, // <--- Added here
         brandColor: brandColor || null,
         publicTitle: publicTitle || null,
         publicSubtitle: publicSubtitle || null,
@@ -154,15 +150,12 @@ app.post('/business/:slug/theme', async (req, res) => {
         showLogo: !!showLogo,
         qrLayout: (qrLayout === 'horizontal' ? 'horizontal' : 'vertical'),
         logoUrl: logoUrl || null,
-
-        // socials with enable/disable
         instagramUrl: instagramFinal,
         tiktokUrl: tiktokFinal,
         youtubeUrl: youtubeFinal,
       }
     });
 
-    // Replace steps with new list
     await prisma.step.deleteMany({ where: { businessId: biz.id } });
     if (steps && steps.trim().length) {
       const lines = steps.split('\n').map(l => l.trim()).filter(Boolean);
