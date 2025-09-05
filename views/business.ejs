@@ -63,8 +63,8 @@
   <main>
     <section>
       <form id="themeForm" method="post" action="/business/<%= biz.slug %>/theme">
-        <input type="hidden" id="publicSubtitle" name="publicSubtitle" value="<%= biz.publicSubtitle || '' %>"/>
-        
+        <!-- Removed hidden publicSubtitle input -->
+
         <div class="card">
           <h3>1) Brand</h3>
           <div class="row">
@@ -75,7 +75,12 @@
             </div>
             <div>
               <label>Tagline</label>
-              <input name="tagline" type="text" value="<%= biz.tagline || 'From the streets of NYC' %>" />
+              <input
+                name="publicSubtitle"
+                type="text"
+                value="<%= (biz.publicSubtitle ?? '') %>"
+                placeholder="From the streets of NYC"
+              />
               <div class="hint">A small phrase below the name.</div>
             </div>
           </div>

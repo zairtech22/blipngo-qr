@@ -11,10 +11,9 @@
       --paper: #FFFBEA;
       --muted: #646464;
       --accent: #262626;
-      /* NEW: Variables for colors from the control panel */
       --logo-bg: <%= biz.logoBgColor ? biz.logoBgColor : '#0A0A0A' %>;
       --cta-color: <%= biz.ctaColor ? biz.ctaColor : '#EDC400' %>;
-      --cta-bg-color: <%= biz.ctaBgColor ? biz.ctaBgColor : '#0A0A0A' %>; /* Add this line */
+      --cta-bg-color: <%= biz.ctaBgColor ? biz.ctaBgColor : '#0A0A0A' %>;
     }
     
     /* ---------- BASE / SCREEN ---------- */
@@ -330,7 +329,10 @@
           <% } %>
         </div>
         <h1 class="bizname"><%= biz.name %></h1>
-        <p class="tagline"><%= biz.tagline || 'From the streets of NYC' %></p>
+        <% if (biz.publicSubtitle && biz.publicSubtitle.trim().length) { %>
+          <p class="tagline"><%= biz.publicSubtitle %></p>
+        <% } %>
+
       </div>
       <h2 class="cta"><%= biz.ctaText || 'Every Scan Wins — Some Unlock a Golden Ticket 🎟️' %></h2>
       <ol class="steps">
